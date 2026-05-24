@@ -3295,7 +3295,7 @@ export default function App() {
                   <h2 className="glow-purple" style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>
                     {t.dashboard.profile}
                   </h2>
-                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginTop: '0.5rem' }}>
+                  <div className="user-profile-row">
                     <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                       <input 
                         type="text" 

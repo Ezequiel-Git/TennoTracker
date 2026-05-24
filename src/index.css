@@ -302,11 +302,18 @@ h1, h2, h3, h4, h5, h6 {
 
 .mastery-header {
   display: flex;
-  justify-content: flex-between;
-  align-items: flex-start;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
   gap: 1.5rem;
+}
+
+.user-profile-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 0.5rem;
 }
 
 .mr-selector-wrapper {
@@ -5198,6 +5205,30 @@ h1, h2, h3, h4, h5, h6 {
   .progress-text-absolute {
     font-size: 0.65rem !important;
     letter-spacing: 0.01em !important;
+  }
+  .user-profile-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+  .user-profile-row > div {
+    width: 100% !important;
+  }
+  .user-profile-row input {
+    width: 100% !important;
+    padding-right: 0.5rem !important;
+  }
+  .user-profile-row select {
+    width: 100% !important;
+  }
+  .mr-selector-wrapper {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.35rem;
+    width: 100%;
+  }
+  .mr-selector-wrapper select {
+    width: 100% !important;
   }
 }
 
