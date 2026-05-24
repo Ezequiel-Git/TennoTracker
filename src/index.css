@@ -3105,21 +3105,26 @@ h1, h2, h3, h4, h5, h6 {
    ===================================================== */
 .prime-sets-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 1.25rem;
   margin-top: 1rem;
 }
 
 .prime-set-card {
+  display: flex;
+  flex-direction: column;
   padding: 1.25rem;
   border-radius: 12px;
-  border-top: 3px solid;
+  border-top: 3px solid var(--gold) !important;
   position: relative;
   overflow: hidden;
+  transition: transform var(--transition-smooth), border-color var(--transition-smooth), box-shadow var(--transition-smooth);
 }
 
-.prime-set-card.complete {
-  border-top-color: var(--gold);
+.prime-set-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(223, 184, 88, 0.35) !important;
+  box-shadow: 0 12px 24px rgba(223, 184, 88, 0.12), 0 8px 16px rgba(0, 0, 0, 0.5) !important;
 }
 
 .prime-set-card::before {
@@ -3134,27 +3139,34 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  gap: 0.5rem;
+  flex-wrap: wrap;
   margin-bottom: 0.75rem;
 }
 
 .prime-set-name {
-  font-size: 0.95rem;
+  font-size: 0.98rem;
   font-weight: 700;
   color: var(--text-bright);
+  line-height: 1.3;
+  min-width: 120px;
+  flex: 1;
 }
 
 .prime-set-badge {
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   font-family: var(--font-display);
   font-weight: 700;
-  padding: 0.15rem 0.5rem;
+  padding: 0.18rem 0.55rem;
   border-radius: 20px;
   text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .prime-set-badge.complete {
-  background: rgba(223, 184, 88, 0.15);
-  border: 1px solid rgba(223, 184, 88, 0.4);
+  background: rgba(223, 184, 88, 0.12);
+  border: 1px solid rgba(223, 184, 88, 0.3);
   color: var(--gold);
 }
 
@@ -3170,8 +3182,9 @@ h1, h2, h3, h4, h5, h6 {
 .prime-market-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.4rem;
-  padding: 0.4rem 0.85rem;
+  padding: 0.5rem 0.85rem;
   border-radius: 6px;
   background: rgba(139, 92, 246, 0.12);
   border: 1px solid rgba(139, 92, 246, 0.35);
@@ -3181,11 +3194,15 @@ h1, h2, h3, h4, h5, h6 {
   text-decoration: none;
   transition: all var(--transition-fast);
   cursor: pointer;
+  margin-top: auto; /* Push button to the bottom of the card */
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .prime-market-btn:hover {
   background: rgba(139, 92, 246, 0.2);
   box-shadow: 0 0 12px rgba(139, 92, 246, 0.3);
+  border-color: rgba(139, 92, 246, 0.6);
 }
 
 /* =====================================================
