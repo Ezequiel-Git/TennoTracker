@@ -2421,18 +2421,14 @@ export default function App() {
     });
 
     return Object.entries(knownPrimeSets).map(([setName, data]) => {
-      // Rough plat estimate: 40–180 per item, Warframes ~200
-      const basePrice = data.type === 'Warframe' ? 180 : 60;
-      const estimatedPrice = Math.round(basePrice + Math.random() * 40);
       const marketSlug = setName.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
       return {
         setName,
         items: data.items,
         type: data.type,
-        estimatedPrice,
         marketUrl: `https://warframe.market/items/${marketSlug}_set`
       };
-    }).sort((a, b) => b.estimatedPrice - a.estimatedPrice);
+    }).sort((a, b) => a.setName.localeCompare(b.setName));
   }, [weapons, inventory]);
 
   // MODULE 6: Generate share card markdown
@@ -6285,10 +6281,7 @@ export default function App() {
                       <span className="prime-set-name">⭐ {setData.setName}</span>
                       <span className="prime-set-badge complete">{t.prime?.completeSet || 'Complete'}</span>
                     </div>
-                    <div className="prime-price">
-                      ~{setData.estimatedPrice} <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t.prime?.platinum || 'plat'}</span>
-                    </div>
-                    <div style={{ marginBottom: '0.5rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                    <div style={{ marginBottom: '0.75rem', marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                       {formatPrimeSetParts(setData.type, lang)}
                     </div>
                     <a
