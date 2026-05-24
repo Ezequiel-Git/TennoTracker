@@ -1711,6 +1711,42 @@ const togglePlanetNode = (planetId, nodeName, starChartState, setStarChartState)
   });
 };
 
+const formatPrimeSetParts = (type, lang) => {
+  const count = type === 'Warframe' ? 4 : (type === 'Melee' ? 3 : 4);
+  
+  let partsStr = '';
+  let typeStr = '';
+  
+  if (lang === 'pt') {
+    partsStr = `${count} partes de`;
+    if (type === 'Warframe') typeStr = 'Warframe';
+    else if (type === 'Primary') typeStr = 'Arma Primária';
+    else if (type === 'Secondary') typeStr = 'Arma Secundária';
+    else if (type === 'Melee') typeStr = 'Arma Corpo a Corpo';
+    else typeStr = type;
+  } else if (lang === 'es') {
+    partsStr = `${count} partes de`;
+    if (type === 'Warframe') typeStr = 'Warframe';
+    else if (type === 'Primary') typeStr = 'Arma Primaria';
+    else if (type === 'Secondary') typeStr = 'Arma Secundaria';
+    else if (type === 'Melee') typeStr = 'Arma Cuerpo a Cuerpo';
+    else typeStr = type;
+  } else if (lang === 'ja') {
+    partsStr = `${count}つのパーツ`;
+    if (type === 'Warframe') typeStr = 'Warframe';
+    else if (type === 'Primary') typeStr = 'プライマリ';
+    else if (type === 'Secondary') typeStr = 'セカンダリ';
+    else if (type === 'Melee') typeStr = '近接';
+    else typeStr = type;
+    return `${typeStr} · ${partsStr}`;
+  } else {
+    partsStr = `${count} parts of`;
+    typeStr = type;
+  }
+  
+  return `${partsStr} · ${typeStr}`;
+};
+
 export default function App() {
   // --- STATE ---
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -6253,7 +6289,7 @@ export default function App() {
                       ~{setData.estimatedPrice} <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t.prime?.platinum || 'plat'}</span>
                     </div>
                     <div style={{ marginBottom: '0.5rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                      {setData.items.length} {t.prime?.partOf || 'items'} · {setData.type}
+                      {formatPrimeSetParts(setData.type, lang)}
                     </div>
                     <a
                       href={setData.marketUrl}
