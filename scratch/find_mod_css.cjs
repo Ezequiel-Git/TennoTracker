@@ -1,0 +1,13 @@
+const fs = require('fs');
+const lines = fs.readFileSync('c:/Users/Pichau/Projetos/Warframe/src/App.jsx', 'utf8').split('\n');
+
+const searchTokens = ['className="mod-card"', 'className="mods-grid"', 'className="mod-header"', 'className="mod-body"'];
+
+searchTokens.forEach(token => {
+  console.log(`\n=== Matches for: ${token} ===`);
+  lines.forEach((line, index) => {
+    if (line.includes(token)) {
+      console.log(`${index + 1}: ${line.trim()}`);
+    }
+  });
+});
