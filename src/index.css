@@ -1284,7 +1284,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Responsive adjustments */
-@media (max-width: 768px) {
+@media (max-width: 1250px) {
   .app-header {
     padding: 1rem;
   }
@@ -1304,6 +1304,9 @@ h1, h2, h3, h4, h5, h6 {
   .main-nav::-webkit-scrollbar {
     display: none;
   }
+}
+
+@media (max-width: 768px) {
   .main-content {
     padding: 1rem;
   }
@@ -5098,7 +5101,7 @@ h1, h2, h3, h4, h5, h6 {
   margin-left: 1rem;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1250px) {
   .header-controls {
     margin-left: 0;
     justify-content: center;
