@@ -3596,7 +3596,7 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
   aspect-ratio: 16 / 9;
   min-height: 520px;
-  background-image: linear-gradient(rgba(10, 15, 30, 0.1), rgba(6, 10, 20, 0.35)), url('/starchart_accurate_bg.png');
+  background-image: linear-gradient(rgba(10, 15, 30, 0.1), rgba(6, 10, 20, 0.35)), url('../public/starchart_accurate_bg.png');
   background-size: cover;
   background-position: center;
   border-radius: 12px;
@@ -4354,7 +4354,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Earth (Terra) - blue ocean and green/brown lands with cyan atmosphere */
 [data-id="earth"] .planet-sphere {
-  background-image: url('/planets/earth.png') !important;
+  background-image: url('../public/planets/earth.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #1565c0;
@@ -4372,7 +4372,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Saturn (Saturno) - golden gas giant with simulated 3D rings */
 [data-id="saturn"] .planet-sphere {
-  background-image: url('/planets/saturn.png') !important;
+  background-image: url('../public/planets/saturn.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #dfb873;
@@ -4382,7 +4382,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Jupiter (Júpiter) - banded orange-brown with Great Red Spot */
 [data-id="jupiter"] .planet-sphere {
-  background-image: url('/planets/jupiter.png') !important;
+  background-image: url('../public/planets/jupiter.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #bd7a53;
@@ -4396,7 +4396,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Neptune (Netuno) - deep blue gas giant with stormy clouds */
 [data-id="neptune"] .planet-sphere {
-  background-image: url('/planets/neptune.png') !important;
+  background-image: url('../public/planets/neptune.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #002b8b;
@@ -4406,7 +4406,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Uranus (Urano) - pale cyan gas giant with subtle ring */
 [data-id="uranus"] .planet-sphere {
-  background-image: url('/planets/uranus.png') !important;
+  background-image: url('../public/planets/uranus.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #4ca9b3;
@@ -4416,7 +4416,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Mars (Marte) - red-orange planet with polar ice cap */
 [data-id="mars"] .planet-sphere {
-  background-image: url('/planets/mars.png') !important;
+  background-image: url('../public/planets/mars.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #e64a19;
@@ -4428,7 +4428,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Venus (Vênus) - toxic orange/yellow acid atmosphere */
 [data-id="venus"] .planet-sphere {
-  background-image: url('/planets/venus.png') !important;
+  background-image: url('../public/planets/venus.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #f57c00;
@@ -4437,7 +4437,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Mercury (Mercúrio) - heavily cratered gray rock */
 [data-id="mercury"] .planet-sphere {
-  background-image: url('/planets/mercury.png') !important;
+  background-image: url('../public/planets/mercury.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #78909c;
@@ -4446,7 +4446,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Void (Vazio) - glowing golden Orokin energy rift */
 [data-id="void"] .planet-sphere {
-  background-image: url('/planets/void.png') !important;
+  background-image: url('../public/planets/void.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #ffd54f;
@@ -4455,7 +4455,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Deimos - infested organic Heart of Deimos */
 [data-id="deimos"] .planet-sphere {
-  background-image: url('/planets/deimos.png') !important;
+  background-image: url('../public/planets/deimos.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #d50000;
@@ -4464,7 +4464,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Lua (Moon) - silvery cratered Moon with Orokin mysteries */
 [data-id="lua"] .planet-sphere {
-  background-image: url('/planets/lua.png') !important;
+  background-image: url('../public/planets/lua.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #b0bec5;
@@ -4473,7 +4473,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Zariman Ten Zero - Orokin golden colony ship */
 [data-id="zariman"] .planet-sphere {
-  background-image: url('/planets/zariman.png') !important;
+  background-image: url('../public/planets/zariman.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #c2b280;
@@ -4483,7 +4483,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Sanctum Anatomica - deep void with violet Void energy */
 [data-id="sanctum"] .planet-sphere {
-  background-image: url('/planets/sanctum.png') !important;
+  background-image: url('../public/planets/sanctum.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #7b1fa2;
@@ -4492,7 +4492,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Ceres - asteroid belt with bright Occator crater white spots */
 [data-id="ceres"] .planet-sphere {
-  background-image: url('/planets/ceres.png') !important;
+  background-image: url('../public/planets/ceres.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #90a4ae;
@@ -4501,7 +4501,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Phobos - dark irregular asteroid moon of Mars */
 [data-id="phobos"] .planet-sphere {
-  background-image: url('/planets/phobos.png') !important;
+  background-image: url('../public/planets/phobos.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #8d6e63;
@@ -4510,7 +4510,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Eris - dark green-yellow plagued infested surface */
 [data-id="eris"] .planet-sphere {
-  background-image: url('/planets/eris.png') !important;
+  background-image: url('../public/planets/eris.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #33691e;
@@ -4519,7 +4519,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Pluto - pale frozen methane gray/brown surface */
 [data-id="pluto"] .planet-sphere {
-  background-image: url('/planets/pluto.png') !important;
+  background-image: url('../public/planets/pluto.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #8d6e63;
@@ -4528,7 +4528,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Europa - icy moon with subsurface ocean and brown crack lines */
 [data-id="europa"] .planet-sphere {
-  background-image: url('/planets/europa.png') !important;
+  background-image: url('../public/planets/europa.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #00bcd4;
@@ -4537,7 +4537,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Sedna - distant cold red dwarf planet */
 [data-id="sedna"] .planet-sphere {
-  background-image: url('/planets/sedna.png') !important;
+  background-image: url('../public/planets/sedna.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #b71c1c;
@@ -4630,7 +4630,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Earth (Terra) Large */
 [data-id="earth"] .planet-sphere.large {
-  background-image: url('/planets/earth.png') !important;
+  background-image: url('../public/planets/earth.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #1565c0;
@@ -4640,7 +4640,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Saturn (Saturno) Large */
 [data-id="saturn"] .planet-sphere.large {
-  background-image: url('/planets/saturn.png') !important;
+  background-image: url('../public/planets/saturn.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #dfb873;
@@ -4650,7 +4650,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Jupiter (Júpiter) Large */
 [data-id="jupiter"] .planet-sphere.large {
-  background-image: url('/planets/jupiter.png') !important;
+  background-image: url('../public/planets/jupiter.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #bd7a53;
@@ -4662,7 +4662,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Neptune (Netuno) Large */
 [data-id="neptune"] .planet-sphere.large {
-  background-image: url('/planets/neptune.png') !important;
+  background-image: url('../public/planets/neptune.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #01579b;
@@ -4671,7 +4671,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Uranus (Urano) Large */
 [data-id="uranus"] .planet-sphere.large {
-  background-image: url('/planets/uranus.png') !important;
+  background-image: url('../public/planets/uranus.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #4ca9b3;
@@ -4680,7 +4680,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Mars (Marte) Large */
 [data-id="mars"] .planet-sphere.large {
-  background-image: url('/planets/mars.png') !important;
+  background-image: url('../public/planets/mars.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #e64a19;
@@ -4692,7 +4692,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Venus (Vênus) Large */
 [data-id="venus"] .planet-sphere.large {
-  background-image: url('/planets/venus.png') !important;
+  background-image: url('../public/planets/venus.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #f57c00;
@@ -4701,7 +4701,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Mercury (Mercúrio) Large */
 [data-id="mercury"] .planet-sphere.large {
-  background-image: url('/planets/mercury.png') !important;
+  background-image: url('../public/planets/mercury.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #78909c;
@@ -4710,7 +4710,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Void (Vazio) Large */
 [data-id="void"] .planet-sphere.large {
-  background-image: url('/planets/void.png') !important;
+  background-image: url('../public/planets/void.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #ffd54f;
@@ -4719,7 +4719,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Deimos Large */
 [data-id="deimos"] .planet-sphere.large {
-  background-image: url('/planets/deimos.png') !important;
+  background-image: url('../public/planets/deimos.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #d50000;
@@ -4728,7 +4728,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Lua Large */
 [data-id="lua"] .planet-sphere.large {
-  background-image: url('/planets/lua.png') !important;
+  background-image: url('../public/planets/lua.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #b0bec5;
@@ -4737,7 +4737,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Zariman Large */
 [data-id="zariman"] .planet-sphere.large {
-  background-image: url('/planets/zariman.png') !important;
+  background-image: url('../public/planets/zariman.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #c2b280;
@@ -4747,7 +4747,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Sanctum Large */
 [data-id="sanctum"] .planet-sphere.large {
-  background-image: url('/planets/sanctum.png') !important;
+  background-image: url('../public/planets/sanctum.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #7b1fa2;
@@ -4756,7 +4756,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Ceres Large */
 [data-id="ceres"] .planet-sphere.large {
-  background-image: url('/planets/ceres.png') !important;
+  background-image: url('../public/planets/ceres.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #90a4ae;
@@ -4765,7 +4765,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Phobos Large */
 [data-id="phobos"] .planet-sphere.large {
-  background-image: url('/planets/phobos.png') !important;
+  background-image: url('../public/planets/phobos.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #8d6e63;
@@ -4774,7 +4774,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Eris Large */
 [data-id="eris"] .planet-sphere.large {
-  background-image: url('/planets/eris.png') !important;
+  background-image: url('../public/planets/eris.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #33691e;
@@ -4783,7 +4783,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Pluto Large */
 [data-id="pluto"] .planet-sphere.large {
-  background-image: url('/planets/pluto.png') !important;
+  background-image: url('../public/planets/pluto.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #8d6e63;
@@ -4792,7 +4792,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Europa Large */
 [data-id="europa"] .planet-sphere.large {
-  background-image: url('/planets/europa.png') !important;
+  background-image: url('../public/planets/europa.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #00bcd4;
@@ -4801,7 +4801,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Sedna Large */
 [data-id="sedna"] .planet-sphere.large {
-  background-image: url('/planets/sedna.png') !important;
+  background-image: url('../public/planets/sedna.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #b71c1c;
