@@ -5501,3 +5501,133 @@ body {
   }
 }
 
+/* ==========================================================================
+   INTERACTIVE PREMIUM ANIMATIONS
+   ========================================================================== */
+
+/* Card Entry Staggered Animations */
+.weapon-card, .mod-card {
+  animation: cardFadeSlideUp 0.45s cubic-bezier(0.25, 0.8, 0.25, 1) both;
+}
+
+@keyframes cardFadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Planet Bobbing & Slow Orbit Spin */
+.planet-wrapper-bobbing {
+  animation: planetBob 6s ease-in-out infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes planetBob {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-4px); }
+  100% { transform: translateY(0px); }
+}
+
+.planet-sphere {
+  animation: planetSpin 120s linear infinite !important;
+}
+
+@keyframes planetSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Hologram Scanning Aura on Profile Glyph */
+.avatar-container-hover {
+  position: relative;
+  overflow: hidden;
+}
+
+.avatar-container-hover::after {
+  content: '';
+  position: absolute;
+  top: -100%;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(var(--cyan-rgb), 0.04) 30%,
+    rgba(var(--cyan-rgb), 0.22) 50%,
+    rgba(var(--cyan-rgb), 0.04) 70%,
+    transparent 100%
+  );
+  pointer-events: none;
+  animation: hologramScan 4.5s linear infinite;
+  opacity: 0.8;
+}
+
+@keyframes hologramScan {
+  0% { top: -100%; }
+  100% { top: 100%; }
+}
+
+/* Sync & Backup Custom Styles */
+.sync-box {
+  background: rgba(10, 15, 30, 0.45) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  backdrop-filter: blur(8px);
+  transition: border-color var(--transition-smooth), box-shadow var(--transition-smooth), transform var(--transition-smooth);
+}
+
+.sync-box:hover {
+  border-color: rgba(var(--cyan-rgb), 0.25);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(var(--cyan-rgb), 0.05);
+  transform: translateY(-2px);
+}
+
+.json-textarea {
+  background: rgba(0, 0, 0, 0.45) !important;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: #38bdf8;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.8rem;
+  padding: 0.75rem;
+  min-height: 120px;
+  resize: vertical;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.json-textarea:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 12px var(--cyan-dim);
+  outline: none;
+}
+
+.import-dropzone.active {
+  border-style: solid;
+  border-color: var(--cyan);
+  box-shadow: 0 0 25px rgba(var(--cyan-rgb), 0.25);
+  animation: dropzonePulse 1.5s infinite ease-in-out;
+}
+
+@keyframes dropzonePulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); border-color: var(--border-glow); }
+  100% { transform: scale(1); }
+}
+
+
+

@@ -1747,6 +1747,43 @@ const formatPrimeSetParts = (type, lang) => {
   return `${partsStr} · ${typeStr}`;
 };
 
+// --- ANIMATED COUNTER COMPONENT ---
+function AnimatedCounter({ value, duration = 800, decimals = 0, suffix = '' }) {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let start = 0;
+    const end = parseFloat(value);
+    if (isNaN(end) || end === 0) {
+      setCount(value);
+      return;
+    }
+    
+    const startTime = performance.now();
+    
+    const updateCount = (now) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Ease out quad
+      const easeProgress = progress * (2 - progress);
+      const currentVal = easeProgress * end;
+      
+      setCount(currentVal.toFixed(decimals));
+      
+      if (progress < 1) {
+        requestAnimationFrame(updateCount);
+      } else {
+        setCount(end.toFixed(decimals));
+      }
+    };
+    
+    requestAnimationFrame(updateCount);
+  }, [value, duration, decimals]);
+
+  return <>{Number(count).toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}{suffix}</>;
+}
+
 // --- GLYPH AVATARS DATA ---
 const GLYPHS = {
   excalibur: {
@@ -1985,6 +2022,7 @@ export default function App() {
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [masteryRank, setMasteryRank] = useState(() => Number(localStorage.getItem('wf_mastery_rank')) || 1);
   const [isAutoDetected, setIsAutoDetected] = useState(false);
+  const [importPreview, setImportPreview] = useState(null);
 
   // Sync theme selection to body class
   useEffect(() => {
@@ -2544,20 +2582,94 @@ export default function App() {
       const next = JSON.parse(JSON.stringify(prev)); // Deep copy
       
       const adjustSingle = (key, amt) => {
-        const currentRank = next[key]?.rank ?? 0;
-        const currentStanding = next[key]?.standing ?? 0;
+        if (!next[key]) return;
         
-        let maxStd = syndicateMaxStanding[String(currentRank)] || 132000;
+        let rank = next[key].rank ?? 0;
+        let standing = next[key].standing ?? 0;
+        let remaining = amt;
         
-        let newStanding = currentStanding + amt;
-        if (newStanding > maxStd) {
-          newStanding = maxStd;
-        } else if (newStanding < 0) {
-          newStanding = 0;
+        while (remaining !== 0) {
+          const cap = syndicateMaxStanding[String(rank)] || 132000;
+          
+          if (remaining > 0) {
+            // Gaining positive standing
+            if (rank >= 0) {
+              const space = cap - standing;
+              if (remaining <= space) {
+                standing += remaining;
+                remaining = 0;
+              } else {
+                standing = cap;
+                remaining = 0; // Cap at positive rank ceiling (requires manual sacrifice/level up)
+              }
+            } else {
+              // Negative rank: positive standing reduces the negative standing depth
+              if (remaining <= standing) {
+                standing -= remaining;
+                remaining = 0;
+              } else {
+                // Clear this negative rank and rank up towards neutral
+                remaining -= standing;
+                standing = 0;
+                if (rank === -2) {
+                  rank = -1;
+                  standing = syndicateMaxStanding['-1'] || 22000; // Starts at max depth of -1
+                } else if (rank === -1) {
+                  rank = 0;
+                  standing = 0; // Starts at 0 depth of Rank 0 (Neutral)
+                }
+              }
+            }
+          } else {
+            // Losing standing (remaining is negative, e.g. gaining negative depth)
+            const loss = -remaining;
+            
+            if (rank > 0) {
+              if (loss <= standing) {
+                standing -= loss;
+                remaining = 0;
+              } else {
+                // Rank down to previous positive rank
+                const used = standing;
+                remaining += used;
+                rank = rank - 1;
+                standing = syndicateMaxStanding[String(rank)] || 22000;
+              }
+            } else if (rank === 0) {
+              if (loss <= standing) {
+                standing -= loss;
+                remaining = 0;
+              } else {
+                // Rank down to Rank -1
+                const used = standing;
+                remaining += used;
+                rank = -1;
+                standing = 0; // Opposed rank starts at 0 depth
+              }
+            } else {
+              // Negative rank: losing standing pushes us deeper into negative depth
+              const space = cap - standing;
+              if (loss <= space) {
+                standing += loss;
+                remaining = 0;
+              } else {
+                if (rank === -1) {
+                  // Rank down to Rank -2
+                  remaining += space;
+                  rank = -2;
+                  standing = 0; // Enemy rank starts at 0 depth
+                } else if (rank === -2) {
+                  // Absolute bottom cap
+                  standing = cap;
+                  remaining = 0;
+                }
+              }
+            }
+          }
         }
-        if (next[key]) {
-          next[key].standing = newStanding;
-        }
+        
+        next[key].rank = rank;
+        next[key].standing = standing;
       };
 
       // Adjust main syndicate
@@ -3030,12 +3142,6 @@ export default function App() {
         if (stateA !== stateB) return stateA - stateB;
         return (a.name || '').localeCompare(b.name || '');
       }
-      if (sortBy === 'vaulted-first') {
-        const valA = a.vaulted ? 1 : 0;
-        const valB = b.vaulted ? 1 : 0;
-        if (valA !== valB) return valB - valA;
-        return (a.name || '').localeCompare(b.name || '');
-      }
       return 0;
     });
   }, [weapons, inventory, searchQuery, filterType, filterStatus, filterVault, hideLockedByMR, masteryRank, sortBy, lang, hideUnresearched, dojoResearch]);
@@ -3180,7 +3286,7 @@ export default function App() {
     downloadAnchor.remove();
   };
 
-  const performImport = (jsonText) => {
+  const analyzeImportData = (jsonText) => {
     setSyncStatus(null);
     try {
       const parsed = JSON.parse(jsonText);
@@ -3196,30 +3302,24 @@ export default function App() {
         throw new Error(invalidJsonError);
       }
 
+      // Direct TennoTracker backup format
       if (parsed.inventory && typeof parsed.inventory === 'object') {
-        setInventory(parsed.inventory);
-        if (parsed.username) setUsername(parsed.username);
-        if (parsed.platform) setPlatform(parsed.platform);
-        if (parsed.masteryRank) setMasteryRank(Number(parsed.masteryRank) || 1);
-        if (parsed.syndicates && typeof parsed.syndicates === 'object') {
-          setSyndicates(parsed.syndicates);
-        }
-        if (parsed.modInventory && typeof parsed.modInventory === 'object') {
-          setModInventory(parsed.modInventory);
-        }
-        if (parsed.starChartNormal && typeof parsed.starChartNormal === 'object') {
-          setStarChartNormal(parsed.starChartNormal);
-        }
-        if (parsed.starChartSteelPath && typeof parsed.starChartSteelPath === 'object') {
-          setStarChartSteelPath(parsed.starChartSteelPath);
-        }
-        if (parsed.starChartJunctions && Array.isArray(parsed.starChartJunctions)) {
-          setStarChartJunctions(parsed.starChartJunctions);
-        }
-        setSyncStatus({ type: 'success', message: t.sync.successImport });
-        setImportJson('');
-        return true;
+        const weaponsCount = Object.keys(parsed.inventory).length;
+        const modsCount = parsed.modInventory ? Object.keys(parsed.modInventory).length : 0;
+        const syndicatesCount = parsed.syndicates ? Object.keys(parsed.syndicates).length : 0;
+        
+        return {
+          type: 'direct',
+          username: parsed.username || '',
+          platform: parsed.platform || 'PC',
+          masteryRank: parsed.masteryRank || 1,
+          weaponsCount,
+          modsCount,
+          syndicatesCount,
+          rawData: parsed
+        };
       } else {
+        // Smart importer for AlecaFrame or generic JSON array/object
         const newInventory = { ...inventory };
         let importCount = 0;
 
@@ -3265,17 +3365,21 @@ export default function App() {
         scanObject(parsed);
         
         if (importCount > 0) {
-          setInventory(newInventory);
-          const successMsg = lang === 'pt' 
-            ? `Importação inteligente concluída! Identificamos e importamos o status de ${importCount} itens.` 
-            : lang === 'es' 
-            ? `¡Importación inteligente completada! Identificamos e importamos el estado de ${importCount} objetos.`
-            : lang === 'ja' 
-            ? `スマートインポートが完了しました！${importCount}個のアイテムの状態をインポートしました。`
-            : `Smart import completed! Identified and imported status for ${importCount} items.`;
-          setSyncStatus({ type: 'success', message: successMsg });
-          setImportJson('');
-          return true;
+          return {
+            type: 'smart',
+            username: parsed.username || username || '',
+            platform: parsed.platform || platform || 'PC',
+            masteryRank: parsed.masteryRank || masteryRank || 1,
+            weaponsCount: importCount,
+            modsCount: 0,
+            syndicatesCount: 0,
+            rawData: {
+              inventory: newInventory,
+              username: parsed.username || username,
+              platform: parsed.platform || platform,
+              masteryRank: parsed.masteryRank || masteryRank
+            }
+          };
         } else {
           const noItemsError = lang === 'pt'
             ? 'Nenhum item conhecido encontrado no JSON importado. Certifique-se de que os nomes coincidem.'
@@ -3290,13 +3394,20 @@ export default function App() {
     } catch (err) {
       const errorLabel = lang === 'pt' ? 'Erro ao importar JSON' : lang === 'es' ? 'Error al importar JSON' : lang === 'ja' ? 'JSONインポートエラー' : 'Error importing JSON';
       setSyncStatus({ type: 'error', message: `${errorLabel}: ${err.message}` });
-      return false;
+      return null;
+    }
+  };
+
+  const handleImportAttempt = (jsonText) => {
+    const preview = analyzeImportData(jsonText);
+    if (preview) {
+      setImportPreview(preview);
     }
   };
 
   const handleImportData = (e) => {
     e.preventDefault();
-    performImport(importJson);
+    handleImportAttempt(importJson);
   };
 
   const handleDrag = (e) => {
@@ -3330,7 +3441,7 @@ export default function App() {
     const reader = new FileReader();
     reader.onload = (e) => {
       const text = e.target.result;
-      performImport(text);
+      handleImportAttempt(text);
     };
     reader.onerror = () => {
       const readErrorMsg = lang === 'pt' 
@@ -3715,7 +3826,7 @@ export default function App() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
                   <span>{t.dashboard.nextRank} {getRankName(masteryRank + 1)}</span>
                   <span className="glow-cyan" style={{ color: 'var(--cyan)', fontWeight: 'bold' }}>
-                    {stats.progressPercent.toFixed(1)}%
+                    <AnimatedCounter value={stats.progressPercent} decimals={1} suffix="%" />
                   </span>
                 </div>
                 <div className="mastery-progress-bar-container">
@@ -3744,10 +3855,10 @@ export default function App() {
                 <div className="stat-info">
                   <div className="stat-label">{t.dashboard.stats}</div>
                   <div className="stat-value">
-                    {stats.masteredCount} <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>/ {stats.totalCount}</span>
+                    <AnimatedCounter value={stats.masteredCount} /> <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>/ {stats.totalCount}</span>
                   </div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                    {((stats.masteredCount / stats.totalCount) * 100 || 0).toFixed(1)}% {t.dashboard.masteredOf}
+                    <AnimatedCounter value={(stats.masteredCount / stats.totalCount) * 100 || 0} decimals={1} suffix="%" /> {t.dashboard.masteredOf}
                   </div>
                 </div>
               </div>
@@ -3759,10 +3870,10 @@ export default function App() {
                 <div className="stat-info">
                   <div className="stat-label">{t.dashboard.weaponsOwned}</div>
                   <div className="stat-value">
-                    {stats.ownedCount} <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>/ {stats.totalCount}</span>
+                    <AnimatedCounter value={stats.ownedCount} /> <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>/ {stats.totalCount}</span>
                   </div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                    {t.dashboard.readyToLevel}: {stats.ownedCount - stats.masteredCount}
+                    {t.dashboard.readyToLevel}: <AnimatedCounter value={stats.ownedCount - stats.masteredCount} />
                   </div>
                 </div>
               </div>
@@ -3789,7 +3900,7 @@ export default function App() {
                 <div className="stat-info">
                   <div className="stat-label">{t.dashboard.nemesisProgress}</div>
                   <div className="stat-value">
-                    {stats.nemesisMastered} <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>/ {stats.nemesisCount}</span>
+                    <AnimatedCounter value={stats.nemesisMastered} /> <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>/ {stats.nemesisCount}</span>
                   </div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
                     {t.dashboard.nemesisSub}
@@ -4263,7 +4374,7 @@ export default function App() {
               </div>
             ) : (
               <div className="weapons-grid">
-                {filteredWeapons.map(w => {
+                {filteredWeapons.map((w, idx) => {
                   const state = inventory[w.id] || inventory[w.name] || { owned: false, mastered: false };
                   const isLocked = w.masteryReq > masteryRank;
 
@@ -4276,7 +4387,8 @@ export default function App() {
                         borderColor: isLocked ? 'rgba(239, 68, 68, 0.15)' : '',
                         display: 'flex',
                         flexDirection: 'column',
-                        justifyContent: 'space-between'
+                        justifyContent: 'space-between',
+                        animationDelay: `${Math.min(idx, 20) * 0.03}s`
                       }}
                     >
                       <div>
@@ -4573,7 +4685,7 @@ export default function App() {
             ) : (
               <>
                 <div className="weapons-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))' }}>
-                {filteredMods.slice(0, visibleModsCount).map(m => {
+                {filteredMods.slice(0, visibleModsCount).map((m, idx) => {
                   const key = m.uniqueName || m.name;
                   const state = modInventory[key] || { obtained: false };
                   const rarityClass = `rarity-${(m.rarity || 'common').toLowerCase()}`;
@@ -4583,7 +4695,7 @@ export default function App() {
                       key={key} 
                       className={`mod-card ${rarityClass} ${state.obtained ? 'obtained' : ''}`}
                       onClick={() => setSelectedMod(m)}
-                      style={{ cursor: 'pointer' }}
+                      style={{ cursor: 'pointer', animationDelay: `${Math.min(idx, 20) * 0.03}s` }}
                     >
                       <div className="card-shine" />
                       <div className="mod-card-top">
@@ -5010,6 +5122,7 @@ export default function App() {
                         const isCompleted = currentNodes === planet.maxNodes;
                         const percent = Math.round((currentNodes / planet.maxNodes) * 100 || 0);
                         const isSelected = selectedPlanetId === planet.id;
+                        const bobDelay = `${((coords.x + coords.y) % 5) * -1.2}s`;
 
                         return (
                           <button
@@ -5020,16 +5133,18 @@ export default function App() {
                             onClick={() => setSelectedPlanetId(planet.id)}
                             title={`${lang === 'pt' ? planet.namePt : planet.nameEn} (${currentNodes}/${planet.maxNodes})`}
                           >
-                            <div 
-                              className="planet-sphere" 
-                              style={{ 
-                                boxShadow: isSelected 
-                                  ? `0 0 20px ${starChartMode === 'steelpath' ? '#ff3b30' : 'var(--cyan)'}`
-                                  : isCompleted
-                                    ? `0 0 10px ${starChartMode === 'steelpath' ? '#d4af37' : '#007aff'}`
-                                    : 'none'
-                              }}
-                            />
+                            <div className="planet-wrapper-bobbing" style={{ animationDelay: bobDelay }}>
+                              <div 
+                                className="planet-sphere" 
+                                style={{ 
+                                  boxShadow: isSelected 
+                                    ? `0 0 20px ${starChartMode === 'steelpath' ? '#ff3b30' : 'var(--cyan)'}`
+                                    : isCompleted
+                                      ? `0 0 10px ${starChartMode === 'steelpath' ? '#d4af37' : '#007aff'}`
+                                      : 'none'
+                                }}
+                              />
+                            </div>
                             <span className="planet-label">
                               {lang === 'pt' ? planet.namePt : planet.nameEn}
                               <span className="planet-badge">{percent}%</span>
@@ -5617,37 +5732,99 @@ export default function App() {
                 let factionColor = w.nemesisType === 'Kuva' ? '#ef4444' : w.nemesisType === 'Tenet' ? '#38bdf8' : '#4ade80';
                 
                 return (
-                  <div key={w.id} className="nemesis-card glass-panel" style={{ padding: '1rem', borderTop: `2px solid ${factionColor}` }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-                      <h4 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-bright)' }}>{w.name}</h4>
+                  <div key={w.id} className="nemesis-card glass-panel" style={{ 
+                    padding: '1rem', 
+                    borderTop: `3px solid ${factionColor}`,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    gap: '0.75rem',
+                    position: 'relative',
+                    overflow: 'hidden'
+                  }}>
+                    {/* Background faint faction label */}
+                    <div style={{
+                      position: 'absolute',
+                      right: '8px',
+                      top: '6px',
+                      fontSize: '0.6rem',
+                      fontFamily: 'var(--font-display)',
+                      fontWeight: 700,
+                      color: factionColor,
+                      opacity: 0.15,
+                      pointerEvents: 'none',
+                      textTransform: 'uppercase',
+                      letterSpacing: '1px'
+                    }}>
+                      {w.nemesisType}
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                      {/* Image Thumbnail */}
+                      <div className="nemesis-weapon-thumb-container" style={{
+                        width: '52px',
+                        height: '52px',
+                        borderRadius: '6px',
+                        background: 'rgba(0, 0, 0, 0.25)',
+                        border: '1px solid rgba(255, 255, 255, 0.05)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        overflow: 'hidden',
+                        cursor: 'pointer'
+                      }} onClick={() => setSelectedWeapon(w)}>
+                        <img 
+                          src={getWeaponImage(w)} 
+                          alt={w.name} 
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'contain',
+                            transition: 'transform var(--transition-fast)'
+                          }}
+                          className="nemesis-thumb-img"
+                          onError={(e) => { e.target.style.display = 'none'; }}
+                        />
+                      </div>
+
+                      {/* Title & Faction info */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <h4 style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-bright)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{w.name}</h4>
+                        <span style={{ fontSize: '0.65rem', color: factionColor, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                          {w.nemesisType === 'Kuva' ? '🩸 Kuva' : w.nemesisType === 'Tenet' ? '💼 Tenet' : '🦠 Coda'}
+                        </span>
+                      </div>
+
+                      {/* Checklist buttons */}
                       <div style={{ display: 'flex', gap: '0.25rem' }}>
                         <button 
                           onClick={() => handleToggleOwned(w.name, w.id)}
                           className={`action-btn ${wState.owned ? 'owned-active' : ''}`}
-                          style={{ padding: '0.2rem 0.4rem', fontSize: '0.75rem' }}
-                          title="Obtido"
+                          style={{ padding: '0.25rem 0.45rem', fontSize: '0.75rem' }}
+                          title={t.general.obtained || 'Obtido'}
                         >
                           📦
                         </button>
                         <button 
                           onClick={() => handleToggleMastered(w.name, w.id)}
                           className={`action-btn ${wState.mastered ? 'mastered-active' : ''}`}
-                          style={{ padding: '0.2rem 0.4rem', fontSize: '0.75rem' }}
-                          title="Dominado"
+                          style={{ padding: '0.25rem 0.45rem', fontSize: '0.75rem' }}
+                          title={t.general.mastered || 'Dominado'}
                         >
                           ✔
                         </button>
                       </div>
                     </div>
-                    
-                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+
+                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.15rem' }}>
                       <div style={{ flex: 1 }}>
-                        <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.15rem' }}>{t.nemesis.element}</label>
+                        <label style={{ fontSize: '0.65rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.15rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{t.nemesis.element}</label>
                         <select 
                           value={wState.element || ''}
                           onChange={(e) => handleNemesisUpdate(w.name, w.id, { element: e.target.value })}
                           className="mr-select"
-                          style={{ width: '100%', fontSize: '0.8rem', padding: '0.25rem' }}
+                          style={{ width: '100%', fontSize: '0.78rem', padding: '0.25rem', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)', borderRadius: '4px', color: 'var(--text-bright)' }}
                         >
                           <option value="">{t.nemesis.select}</option>
                           <option value="Toxina">{t.nemesis.toxin}</option>
@@ -5659,8 +5836,8 @@ export default function App() {
                           <option value="Radiação">{t.nemesis.radiation}</option>
                         </select>
                       </div>
-                      <div style={{ width: '70px' }}>
-                        <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.15rem' }}>{t.nemesis.bonus}</label>
+                      <div style={{ width: '75px' }}>
+                        <label style={{ fontSize: '0.65rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.15rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{t.nemesis.bonus}</label>
                         <input 
                           type="number" 
                           min="25" 
@@ -5675,37 +5852,40 @@ export default function App() {
                             padding: '0.25rem',
                             borderRadius: '4px',
                             textAlign: 'center',
-                            fontSize: '0.8rem'
+                            fontSize: '0.78rem'
                           }}
                         />
                       </div>
                     </div>
                     
-                    <div className="stat-bar-container" style={{ height: '4px', marginTop: '0.5rem', background: 'rgba(0,0,0,0.5)' }}>
-                      <div className="stat-bar-fill" style={{ 
-                        width: `${((Math.min(60, Math.max(25, wState.bonus || 25)) - 25) / 35) * 100}%`,
-                        background: wState.bonus >= 60 ? 'var(--gold)' : factionColor 
-                      }}></div>
-                    </div>
-                    
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
-                      {wState.bonus >= 60 ? (
-                        <span style={{ fontSize: '0.65rem', color: 'var(--gold)' }}>{t.nemesis.maxed}</span>
-                      ) : (
-                        <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-                          {t.nemesis.nextFusion}: <strong style={{ color: 'var(--text-bright)' }}>{Math.min(60, (wState.bonus || 25) * 1.1).toFixed(1)}%</strong>
-                        </span>
-                      )}
+                    <div>
+                      <div className="stat-bar-container" style={{ height: '4px', background: 'rgba(0,0,0,0.5)', borderRadius: '2px', overflow: 'hidden' }}>
+                        <div className="stat-bar-fill" style={{ 
+                          width: `${((Math.min(60, Math.max(25, wState.bonus || 25)) - 25) / 35) * 100}%`,
+                          background: wState.bonus >= 60 ? 'var(--gold)' : factionColor,
+                          height: '100%'
+                        }}></div>
+                      </div>
                       
-                      <a 
-                        href={w.wikiaUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="btn-secondary"
-                        style={{ padding: '0.2rem 0.4rem', fontSize: '0.65rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.2rem' }}
-                      >
-                        <ExternalLink size={10} /> Wiki
-                      </a>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.4rem' }}>
+                        {wState.bonus >= 60 ? (
+                          <span style={{ fontSize: '0.65rem', color: 'var(--gold)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>⭐ {t.nemesis.maxed}</span>
+                        ) : (
+                          <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                            {t.nemesis.nextFusion}: <strong style={{ color: 'var(--text-bright)' }}>{Math.min(60, (wState.bonus || 25) * 1.1).toFixed(1)}%</strong>
+                          </span>
+                        )}
+                        
+                        <a 
+                          href={w.wikiaUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="btn-secondary"
+                          style={{ padding: '0.15rem 0.35rem', fontSize: '0.65rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.2rem', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)' }}
+                        >
+                          <ExternalLink size={10} /> Wiki
+                        </a>
+                      </div>
                     </div>
                   </div>
                 );
@@ -5729,13 +5909,45 @@ export default function App() {
               {/* Export Box */}
               <div className="sync-box">
                 <h3>{lang === 'pt' ? 'Exportar Progresso' : lang === 'es' ? 'Exportar Progreso' : lang === 'ja' ? '進行状況のエクスポート' : 'Export Progress'}</h3>
-                <p>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
                   {t.sync.exportDesc}
                 </p>
+
+                {/* Visual Backup Summary Stats */}
+                <div className="backup-stats-container" style={{
+                  background: 'rgba(0, 0, 0, 0.25)',
+                  border: '1px solid rgba(255, 255, 255, 0.05)',
+                  borderRadius: '8px',
+                  padding: '0.75rem 1rem',
+                  fontSize: '0.8rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.45rem',
+                  marginTop: '0.5rem',
+                  marginBottom: '1rem'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>{lang === 'pt' ? 'Conta ativa:' : 'Active Account:'}</span>
+                    <strong style={{ color: 'var(--text-bright)' }}>{username || 'Tenno'}</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>{lang === 'pt' ? 'Plataforma:' : 'Platform:'}</span>
+                    <strong style={{ color: 'var(--cyan)' }}>{platform}</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>{lang === 'pt' ? 'Itens Arsenal:' : 'Arsenal Items:'}</span>
+                    <strong style={{ color: 'var(--text-bright)' }}>{stats.ownedCount} / {stats.totalCount}</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>{lang === 'pt' ? 'Coleção de Mods:' : 'Mods Collection:'}</span>
+                    <strong style={{ color: 'var(--text-bright)' }}>{modStats.obtainedCount} / {modStats.totalCount}</strong>
+                  </div>
+                </div>
+
                 <button 
                   onClick={handleExportData}
                   className="btn-primary"
-                  style={{ marginTop: 'auto' }}
+                  style={{ marginTop: 'auto', width: '100%' }}
                 >
                   <Download size={16} /> {t.sync.exportBtn}
                 </button>
@@ -5744,7 +5956,7 @@ export default function App() {
               {/* Import Box */}
               <div className="sync-box">
                 <h3>{lang === 'pt' ? 'Importar Backup ou JSON do AlecaFrame' : lang === 'es' ? 'Importar Copia de Seguridad o JSON de AlecaFrame' : lang === 'ja' ? 'バックアップまたはAlecaFrameのJSONをインポート' : 'Import Backup or AlecaFrame JSON'}</h3>
-                <p>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
                   {t.sync.importDesc}
                 </p>
 
@@ -5773,12 +5985,42 @@ export default function App() {
                   <span>{t.sync.separatorOr}</span>
                 </div>
                 
-                <form onSubmit={handleImportData} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <form onSubmit={handleImportData} style={{ display: 'flex', flexDirection: 'column' }}>
+                  <div className="terminal-header" style={{
+                    background: 'rgba(10, 15, 30, 0.85)',
+                    border: '1px solid rgba(56, 189, 248, 0.2)',
+                    borderBottom: 'none',
+                    borderTopLeftRadius: '6px',
+                    borderTopRightRadius: '6px',
+                    padding: '0.4rem 0.75rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    fontFamily: 'monospace',
+                    fontSize: '0.65rem',
+                    color: '#38bdf8',
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px'
+                  }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <span className="console-dot" style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#38bdf8', display: 'inline-block' }} />
+                      ORBITER_TERMINAL://IMPORT_JSON
+                    </span>
+                    <span style={{ opacity: 0.5 }}>SECURE_LINE</span>
+                  </div>
+
                   <textarea
                     placeholder={t.sync.importPlaceholder}
                     value={importJson}
                     onChange={(e) => setImportJson(e.target.value)}
                     className="json-textarea"
+                    style={{
+                      borderTopLeftRadius: 0,
+                      borderTopRightRadius: 0,
+                      borderTop: 'none',
+                      marginTop: 0,
+                      marginBottom: '0.75rem'
+                    }}
                     required
                   ></textarea>
 
@@ -5804,6 +6046,115 @@ export default function App() {
         )}
 
       </main>
+
+      {/* IMPORT PREVIEW MODAL */}
+      {importPreview && (
+        <div className="modal-overlay" onClick={() => setImportPreview(null)}>
+          <div className="modal-content glass-panel" style={{ maxWidth: '460px', padding: '2rem' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <h3 className="glow-cyan" style={{ fontSize: '1.25rem', textTransform: 'uppercase', fontFamily: 'var(--font-display)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Check size={20} style={{ color: 'var(--cyan)' }} /> {lang === 'pt' ? 'Confirmar Importação' : 'Confirm Import'}
+              </h3>
+              <button 
+                onClick={() => setImportPreview(null)}
+                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', outline: 'none' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1.25rem', lineHeight: '1.4' }}>
+              {lang === 'pt' 
+                ? 'Lemos os dados do JSON com sucesso! Revise o resumo das informações que serão gravadas:' 
+                : 'JSON data read successfully! Review the summary of the information to be written:'}
+            </p>
+
+            <div className="backup-stats-container" style={{
+              background: 'rgba(0, 0, 0, 0.35)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: '8px',
+              padding: '1rem',
+              fontSize: '0.85rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.65rem',
+              marginBottom: '1.5rem'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--text-muted)' }}>{lang === 'pt' ? 'Usuário:' : 'Username:'}</span>
+                <strong style={{ color: 'var(--text-bright)' }}>{importPreview.username || 'Tenno'}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--text-muted)' }}>{lang === 'pt' ? 'Plataforma:' : 'Platform:'}</span>
+                <strong style={{ color: 'var(--cyan)' }}>{importPreview.platform || 'PC'}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--text-muted)' }}>{lang === 'pt' ? 'Rank de Maestria:' : 'Mastery Rank:'}</span>
+                <strong style={{ color: 'var(--text-bright)' }}>MR {importPreview.masteryRank}</strong>
+              </div>
+              
+              <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.06)', margin: '0.25rem 0', paddingTop: '0.5rem' }} />
+
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--text-muted)' }}>{lang === 'pt' ? 'Itens de Arsenal Detectados:' : 'Arsenal Items Detected:'}</span>
+                <strong style={{ color: 'var(--color-owned)' }}>+{importPreview.weaponsCount}</strong>
+              </div>
+              
+              {importPreview.modsCount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>{lang === 'pt' ? 'Mods Detectados:' : 'Mods Detected:'}</span>
+                  <strong style={{ color: 'var(--purple)' }}>+{importPreview.modsCount}</strong>
+                </div>
+              )}
+              {importPreview.syndicatesCount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>{lang === 'pt' ? 'Sindicatos Detectados:' : 'Syndicates Detected:'}</span>
+                  <strong style={{ color: '#f59e0b' }}>+{importPreview.syndicatesCount}</strong>
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button 
+                className="btn-secondary" 
+                style={{ flex: 1, padding: '0.65rem' }}
+                onClick={() => setImportPreview(null)}
+              >
+                {lang === 'pt' ? 'Cancelar' : 'Cancel'}
+              </button>
+              <button 
+                className="btn-primary" 
+                style={{ flex: 1, padding: '0.65rem', background: 'linear-gradient(135deg, var(--cyan) 0%, #0284c7 100%)' }}
+                onClick={() => {
+                  const data = importPreview.rawData;
+                  if (data.inventory) setInventory(data.inventory);
+                  if (data.username) setUsername(data.username);
+                  if (data.platform) setPlatform(data.platform);
+                  if (data.masteryRank) setMasteryRank(Number(data.masteryRank) || 1);
+                  if (data.syndicates) setSyndicates(data.syndicates);
+                  if (data.modInventory) setModInventory(data.modInventory);
+                  if (data.starChartNormal) setStarChartNormal(data.starChartNormal);
+                  if (data.starChartSteelPath) setStarChartSteelPath(data.starChartSteelPath);
+                  if (data.starChartJunctions) setStarChartJunctions(data.starChartJunctions);
+                  
+                  const countLabel = importPreview.type === 'smart' 
+                    ? (lang === 'pt' ? `Importação inteligente concluída! Identificados ${importPreview.weaponsCount} itens.` : `Smart import completed! Identified ${importPreview.weaponsCount} items.`)
+                    : (lang === 'pt' ? 'Backup completo restaurado com sucesso!' : 'Complete backup restored successfully!');
+
+                  setSyncStatus({ 
+                    type: 'success', 
+                    message: countLabel
+                  });
+                  setImportJson('');
+                  setImportPreview(null);
+                }}
+              >
+                {lang === 'pt' ? 'Confirmar' : 'Confirm'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* WEAPON DETAIL MODAL */}
       {selectedWeapon && (

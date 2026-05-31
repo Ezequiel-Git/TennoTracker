@@ -259,7 +259,11 @@ export const translations = {
       obtained: "Obtido",
       mastered: "Dominar",
       info: "Info",
-      autoDetected: "Detectado automaticamente a partir do jogo em execução."
+      autoDetected: "Detectado automaticamente a partir do jogo em execução.",
+      themeLabel: "Tema Visual",
+      avatarLabel: "Alterar Glyph",
+      avatarModalTitle: "Escolha seu Glyph",
+      avatarBtnClose: "Salvar Glyph"
     },
     cycles: {
       title: "Ciclos do Mundo & Eventos",
@@ -644,7 +648,11 @@ export const translations = {
       obtained: "Owned",
       mastered: "Master",
       info: "Info",
-      autoDetected: "Auto-detected from running game."
+      autoDetected: "Auto-detected from running game.",
+      themeLabel: "Visual Theme",
+      avatarLabel: "Change Glyph",
+      avatarModalTitle: "Choose your Glyph",
+      avatarBtnClose: "Save Glyph"
     },
     cycles: {
       title: "World Cycles & Events",
