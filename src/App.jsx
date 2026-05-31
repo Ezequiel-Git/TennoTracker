@@ -32,9 +32,9 @@ import {
   Map as MapIcon,
   Milestone
 } from 'lucide-react';
-import { fallbackWeapons, getMasteryPointsRequired, getRankName } from './weaponsData';
+import { fallbackWeapons, fallbackCompanions, getMasteryPointsRequired, getRankName } from './weaponsData';
 import { weaponSourceMap } from './weaponSourceMap';
-import { fallbackMods } from './modsData';
+import { fallbackMods, fallbackArcanes } from './modsData';
 
 // --- STATIC CONFIGURATIONS FOR SYNDICATES ---
 const primarySyndicatesList = [
@@ -2121,7 +2121,7 @@ export default function App() {
   const [starChartMode, setStarChartMode] = useState('normal');
   const [selectedPlanetId, setSelectedPlanetId] = useState('earth');
 
-  const [weapons, setWeapons] = useState(fallbackWeapons);
+  const [weapons, setWeapons] = useState(() => [...fallbackWeapons, ...fallbackCompanions]);
   const [loadingApi, setLoadingApi] = useState(false);
   const [isLiveLoaded, setIsLiveLoaded] = useState(false);
   const [isOfflineMode, setIsOfflineMode] = useState(() => localStorage.getItem('tennoTracker_offline') === 'true');
@@ -2145,6 +2145,35 @@ export default function App() {
 
   // Modal State
   const [selectedWeapon, setSelectedWeapon] = useState(null);
+  const [activeShardEditor, setActiveShardEditor] = useState(null);
+
+  // Arcane Inventory State
+  const [arcaneInventory, setArcaneInventory] = useState(() => {
+    try {
+      const stored = localStorage.getItem('tennoTracker_arcanes');
+      return stored ? JSON.parse(stored) : {};
+    } catch { return {}; }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('tennoTracker_arcanes', JSON.stringify(arcaneInventory));
+  }, [arcaneInventory]);
+
+  const [warframeShards, setWarframeShards] = useState(() => {
+    try {
+      const stored = localStorage.getItem('tennoTracker_warframe_shards');
+      return stored ? JSON.parse(stored) : {};
+    } catch { return {}; }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('tennoTracker_warframe_shards', JSON.stringify(warframeShards));
+  }, [warframeShards]);
+
+  // Mods Sub-Tab State
+  const [modsSubTab, setModsSubTab] = useState('mods');
+  const [arcaneSearch, setArcaneSearch] = useState('');
+  const [arcaneFilterCategory, setArcaneFilterCategory] = useState('all');
 
   // Import / Export State
   const [importJson, setImportJson] = useState('');
@@ -2347,7 +2376,7 @@ export default function App() {
   // Fetch Live Weapons & Warframes from WarframeStat API
   useEffect(() => {
     if (isOfflineMode) {
-      setWeapons(fallbackWeapons);
+      setWeapons([...fallbackWeapons, ...fallbackCompanions]);
       setIsLiveLoaded(false);
       setLoadingApi(false);
       return;
@@ -2392,14 +2421,20 @@ export default function App() {
             .map(item => mapItemData(item, true, lang));
         }
         
-        const merged = [...parsedWeapons, ...parsedWarframes];
+        const fallbackOthers = fallbackWeapons.filter(w => 
+          w.type === 'Archwing' || 
+          w.type === 'Arch-Gun' || 
+          w.type === 'Arch-Melee' || 
+          w.type === 'Amp'
+        );
+        const merged = [...parsedWeapons, ...parsedWarframes, ...fallbackCompanions, ...fallbackOthers];
         // Sort by name
         merged.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
         setWeapons(merged);
         setIsLiveLoaded(true);
       } catch (err) {
         console.error('Failed to fetch live Warframe items, using fallback data:', err);
-        setWeapons(fallbackWeapons);
+        setWeapons([...fallbackWeapons, ...fallbackCompanions]);
         setIsLiveLoaded(false);
       } finally {
         setLoadingApi(false);
@@ -2973,6 +3008,7 @@ export default function App() {
   // Helper to get Image URL (with fallback to CDN)
   const getWeaponImage = (w) => {
     if (!w) return '';
+    if (w.wikiaThumbnail) return w.wikiaThumbnail;
     if (w.image) return w.image;
     if (w.imageName) return `https://cdn.warframestat.us/img/${w.imageName}`;
     if (w.name) {
@@ -3003,7 +3039,7 @@ export default function App() {
       if (o.owned) ownedCount++;
       if (o.mastered) {
         masteredCount++;
-        if (e.type === 'Warframe') {
+        if (e.type === 'Warframe' || e.type === 'Companion' || e.type === 'Archwing') {
           weaponMasteryPoints += 6000;
         } else if (e.isNemesis) {
           weaponMasteryPoints += 4000;
@@ -3275,7 +3311,9 @@ export default function App() {
       modInventory,
       starChartNormal,
       starChartSteelPath,
-      starChartJunctions
+      starChartJunctions,
+      arcanes: arcaneInventory,
+      warframeShards
     };
     const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(exportObject, null, 2))}`;
     const downloadAnchor = document.createElement('a');
@@ -3455,6 +3493,8 @@ export default function App() {
     };
     reader.readAsText(file);
   };
+
+
 
   return (
     <>
@@ -4577,6 +4617,37 @@ export default function App() {
         {/* TAB: MODS CATALOG */}
         {activeTab === 'mods' && (
           <div className="tab-pane-fade">
+            {/* SUB-TAB BAR */}
+            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '0.75rem' }}>
+              <button
+                onClick={() => setModsSubTab('mods')}
+                style={{
+                  padding: '0.65rem 1.75rem', fontSize: '0.95rem', borderRadius: '8px', cursor: 'pointer',
+                  background: modsSubTab === 'mods' ? 'var(--cyan)' : 'rgba(255,255,255,0.04)',
+                  color: modsSubTab === 'mods' ? '#000' : 'var(--text-muted)',
+                  border: modsSubTab === 'mods' ? 'none' : '1px solid rgba(255,255,255,0.08)',
+                  fontWeight: 700,
+                  transition: 'all 0.22s ease'
+                }}
+              >
+                ✨ {lang === 'pt' ? 'Mods' : 'Mods'}
+              </button>
+              <button
+                onClick={() => setModsSubTab('arcanes')}
+                style={{
+                  padding: '0.65rem 1.75rem', fontSize: '0.95rem', borderRadius: '8px', cursor: 'pointer',
+                  background: modsSubTab === 'arcanes' ? 'var(--gold)' : 'rgba(255,255,255,0.04)',
+                  color: modsSubTab === 'arcanes' ? '#000' : 'var(--text-muted)',
+                  border: modsSubTab === 'arcanes' ? 'none' : '1px solid rgba(255,255,255,0.08)',
+                  fontWeight: 700,
+                  transition: 'all 0.22s ease'
+                }}
+              >
+                🔮 {lang === 'pt' ? 'Arcanos' : 'Arcanes'}
+              </button>
+            </div>
+
+            {modsSubTab === 'mods' && (<div style={{ display: 'contents' }}>
             {/* TOOLBAR FILTERS */}
             <div className="toolbar">
               <div className="search-input-wrapper">
@@ -4683,7 +4754,7 @@ export default function App() {
                 <p style={{ marginTop: '0.5rem' }}>{lang === 'pt' ? "Tente ajustar seus critérios de busca ou filtros." : "Try adjusting your search criteria or filters."}</p>
               </div>
             ) : (
-              <>
+              <div style={{ display: 'contents' }}>
                 <div className="weapons-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))' }}>
                 {filteredMods.slice(0, visibleModsCount).map((m, idx) => {
                   const key = m.uniqueName || m.name;
@@ -4790,7 +4861,131 @@ export default function App() {
                   </button>
                 </div>
               )}
-            </>)}
+            </div>)}
+            </div>)}
+
+            {modsSubTab === 'arcanes' && (
+              <div>
+                <div className="toolbar" style={{ marginBottom: '1.5rem' }}>
+                  <div className="search-input-wrapper">
+                    <Search className="search-icon-svg" size={18} />
+                    <input
+                      type="text"
+                      placeholder={lang === 'pt' ? 'Buscar arcanos...' : 'Search arcanes...'}
+                      value={arcaneSearch}
+                      onChange={(e) => setArcaneSearch(e.target.value)}
+                      className="search-input"
+                    />
+                  </div>
+                  <select
+                    value={arcaneFilterCategory}
+                    onChange={(e) => setArcaneFilterCategory(e.target.value)}
+                    className="filter-select"
+                  >
+                    <option value="all">{lang === 'pt' ? 'Todas as Categorias' : 'All Categories'}</option>
+                    <option value="Warframe">Warframe</option>
+                    <option value="Primary">{lang === 'pt' ? 'Primária' : 'Primary'}</option>
+                    <option value="Secondary">{lang === 'pt' ? 'Secundária' : 'Secondary'}</option>
+                    <option value="Operator">Operator</option>
+                  </select>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.25rem' }}>
+                  {fallbackArcanes
+                    .filter(a => {
+                      const matchesSearch = a.name.toLowerCase().includes(arcaneSearch.toLowerCase()) || a.description.toLowerCase().includes(arcaneSearch.toLowerCase());
+                      const matchesCategory = arcaneFilterCategory === 'all' || a.category === arcaneFilterCategory;
+                      return matchesSearch && matchesCategory;
+                    })
+                    .map(a => {
+                      const currentRank = arcaneInventory[a.id] || 0;
+                      const rarityColor = a.rarity === 'Legendary' ? 'var(--gold)' : a.rarity === 'Rare' ? '#a855f7' : '#3b82f6';
+                      const copyCounts = [0, 1, 3, 6, 10, 21];
+                      const currentCopies = copyCounts[currentRank];
+                      const handleRankChange = (newRank) => {
+                        setArcaneInventory(prev => {
+                          const copy = { ...prev };
+                          if (newRank === 0) { delete copy[a.id]; } else { copy[a.id] = newRank; }
+                          return copy;
+                        });
+                      };
+                      return (
+                        <div key={a.id} className="glass-panel" style={{
+                          padding: '1.25rem', borderTop: `3px solid ${rarityColor}`,
+                          display: 'flex', flexDirection: 'column', gap: '0.75rem'
+                        }}>
+                          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                            {a.imageName && (
+                              <img 
+                                src={`https://cdn.warframestat.us/img/${a.imageName}`} 
+                                alt={a.name}
+                                style={{ width: '48px', height: '48px', objectFit: 'contain', background: 'rgba(255,255,255,0.02)', borderRadius: '6px', padding: '2px', border: '1px solid rgba(255,255,255,0.06)' }}
+                                onError={(e) => { e.target.style.display = 'none'; }}
+                              />
+                            )}
+                            <div style={{ flex: 1 }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
+                                <h4 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text-bright)' }}>{a.name}</h4>
+                                <span style={{ fontSize: '0.65rem', padding: '0.15rem 0.35rem', borderRadius: '3px', background: 'rgba(255,255,255,0.05)', color: rarityColor, textTransform: 'uppercase', fontWeight: 700, whiteSpace: 'nowrap' }}>{a.category}</span>
+                              </div>
+                              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '0.5rem 0 0 0', lineHeight: '1.3' }}>{a.description}</p>
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                                {lang === 'pt' ? 'Rank:' : 'Rank:'} <strong style={{ color: currentRank === 5 ? 'var(--gold)' : 'var(--text-bright)' }}>{currentRank === 0 ? 'N/A' : `Rank ${currentRank}`}</strong>
+                              </span>
+                              <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{currentRank > 0 && `(${currentCopies} ${lang === 'pt' ? 'cópias' : 'copies'})`}</span>
+                            </div>
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.25rem' }}>
+                              <button 
+                                onClick={() => handleRankChange(0)} 
+                                style={{ 
+                                  background: currentRank === 0 ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.02)', 
+                                  border: `1px solid ${currentRank === 0 ? '#ef4444' : 'rgba(255,255,255,0.05)'}`, 
+                                  color: currentRank === 0 ? '#ef4444' : 'var(--text-muted)', 
+                                  fontSize: '0.78rem', 
+                                  padding: '0.45rem 1rem', 
+                                  borderRadius: '6px', 
+                                  cursor: 'pointer',
+                                  fontWeight: 600,
+                                  transition: 'all 0.2s ease'
+                                }}
+                              >
+                                {lang === 'pt' ? 'Remover' : 'Remove'}
+                              </button>
+                              <div style={{ display: 'flex', gap: '0.35rem' }}>
+                                {[1,2,3,4,5].map(rank => (
+                                  <button 
+                                    key={rank} 
+                                    onClick={() => handleRankChange(rank)} 
+                                    style={{ 
+                                      width: '32px', 
+                                      height: '32px', 
+                                      borderRadius: '50%', 
+                                      border: 'none', 
+                                      background: rank <= currentRank ? rarityColor : 'rgba(255,255,255,0.05)', 
+                                      color: rank <= currentRank ? '#000' : 'var(--text-muted)', 
+                                      fontSize: '0.88rem', 
+                                      fontWeight: 'bold', 
+                                      cursor: 'pointer',
+                                      transition: 'all 0.18s ease'
+                                    }} 
+                                    title={`Rank ${rank}`}
+                                  >
+                                    {rank}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -4853,7 +5048,7 @@ export default function App() {
                           </div>
 
                           <span className="suggestion-action-badge">
-                            +{w.type === 'Warframe' ? '6000' : '3000'} XP
+                            +{w.type === 'Warframe' || w.type === 'Companion' || w.type === 'Archwing' ? '6000' : '3000'} XP
                           </span>
 
                           <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -6136,6 +6331,9 @@ export default function App() {
                   if (data.starChartNormal) setStarChartNormal(data.starChartNormal);
                   if (data.starChartSteelPath) setStarChartSteelPath(data.starChartSteelPath);
                   if (data.starChartJunctions) setStarChartJunctions(data.starChartJunctions);
+                  if (data.arcanes) setArcaneInventory(data.arcanes);
+                  else if (data.arcaneInventory) setArcaneInventory(data.arcaneInventory);
+                  if (data.warframeShards) setWarframeShards(data.warframeShards);
                   
                   const countLabel = importPreview.type === 'smart' 
                     ? (lang === 'pt' ? `Importação inteligente concluída! Identificados ${importPreview.weaponsCount} itens.` : `Smart import completed! Identified ${importPreview.weaponsCount} items.`)
@@ -6158,9 +6356,9 @@ export default function App() {
 
       {/* WEAPON DETAIL MODAL */}
       {selectedWeapon && (
-        <div className="modal-overlay" onClick={() => setSelectedWeapon(null)}>
+        <div className="modal-overlay" onClick={() => { setSelectedWeapon(null); setActiveShardEditor(null); }}>
           <div className="modal-content glass-panel" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close-btn" onClick={() => setSelectedWeapon(null)}>
+            <button className="modal-close-btn" onClick={() => { setSelectedWeapon(null); setActiveShardEditor(null); }}>
               <X size={24} />
             </button>
 
@@ -6254,6 +6452,147 @@ export default function App() {
                         </div>
                       </div>
                     </div>
+
+                    {/* ARCHON SHARD SOCKETS SECTION */}
+                    <h4 className="modal-section-title" style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>🎴 {lang === 'pt' ? 'Fragmentos de Arconte' : 'Archon Shards'}</span>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 'normal', color: 'var(--text-muted)' }}>
+                        {lang === 'pt' ? 'Clique em um slot para equipar' : 'Click a slot to socket'}
+                      </span>
+                    </h4>
+
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      gap: '1rem',
+                      margin: '1rem 0 1.5rem 0',
+                      padding: '0.75rem',
+                      background: 'rgba(0, 0, 0, 0.2)',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(255, 255, 255, 0.05)'
+                    }}>
+                      {[0, 1, 2, 3, 4].map(slotIndex => {
+                        const wfKey = selectedWeapon.id || selectedWeapon.name;
+                        const currentShardsList = warframeShards[wfKey] || [null, null, null, null, null];
+                        const shard = currentShardsList[slotIndex];
+                        let shardColor = 'rgba(255,255,255,0.05)';
+                        let shadowGlow = 'none';
+                        let borderGlow = 'rgba(255,255,255,0.1)';
+                        if (shard && shard.type) {
+                          if (shard.type === 'Crimson') { shardColor = '#ef4444'; shadowGlow = '0 0 12px #ef4444'; borderGlow = '#fca5a5'; }
+                          else if (shard.type === 'Amber') { shardColor = '#f59e0b'; shadowGlow = '0 0 12px #f59e0b'; borderGlow = '#fde047'; }
+                          else if (shard.type === 'Azure') { shardColor = '#3b82f6'; shadowGlow = '0 0 12px #3b82f6'; borderGlow = '#93c5fd'; }
+                          else if (shard.type === 'Violet') { shardColor = '#8b5cf6'; shadowGlow = '0 0 12px #8b5cf6'; borderGlow = '#c084fc'; }
+                          else if (shard.type === 'Topaz') { shardColor = '#ea580c'; shadowGlow = '0 0 12px #ea580c'; borderGlow = '#ff9d5c'; }
+                          else if (shard.type === 'Emerald') { shardColor = '#10b981'; shadowGlow = '0 0 12px #10b981'; borderGlow = '#6ee7b7'; }
+                        }
+                        const isTauforged = shard && shard.tauforged;
+                        return (
+                          <div
+                            key={slotIndex}
+                            onClick={() => setActiveShardEditor({ slotIndex })}
+                            style={{
+                              width: '45px', height: '45px',
+                              background: shard ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.02)',
+                              border: shard ? `2px solid ${borderGlow}` : '1px dashed rgba(255,255,255,0.15)',
+                              borderRadius: '50%', cursor: 'pointer',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              position: 'relative', boxShadow: shadowGlow,
+                              transition: 'all 0.3s ease',
+                              animation: isTauforged ? 'tauforgedPulse 2s infinite ease-in-out' : 'none'
+                            }}
+                            title={shard ? `${isTauforged ? 'Tauforged ' : ''}${shard.type} Shard` : `Empty Slot ${slotIndex + 1}`}
+                          >
+                            {shard && shard.type ? (
+                              <div style={{
+                                width: '18px', height: '18px',
+                                background: shardColor,
+                                clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
+                                boxShadow: isTauforged ? `0 0 8px ${shardColor}` : 'none'
+                              }} />
+                            ) : (
+                              <span style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.15)' }}>+</span>
+                            )}
+                            {isTauforged && (
+                              <span style={{
+                                position: 'absolute', top: '-3px', right: '-3px',
+                                width: '8px', height: '8px', borderRadius: '50%',
+                                background: 'var(--gold)', boxShadow: '0 0 6px var(--gold)'
+                              }} />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {activeShardEditor !== null && (() => {
+                      const slotIndex = activeShardEditor.slotIndex;
+                      const wfKey = selectedWeapon.id || selectedWeapon.name;
+                      const currentShardsList = warframeShards[wfKey] || [null, null, null, null, null];
+                      const shard = currentShardsList[slotIndex];
+                      const updateShard = (type, tauforged) => {
+                        const newList = [...currentShardsList];
+                        newList[slotIndex] = type === null ? null : { type, tauforged };
+                        setWarframeShards(prev => ({ ...prev, [wfKey]: newList }));
+                      };
+                      return (
+                        <div style={{
+                          padding: '1rem', margin: '0.5rem 0 1rem 0',
+                          background: 'rgba(255,255,255,0.02)',
+                          border: '1px solid rgba(255,255,255,0.08)',
+                          borderRadius: '8px'
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-bright)' }}>
+                              {lang === 'pt' ? `Editar Slot ${slotIndex + 1}` : `Edit Slot ${slotIndex + 1}`}
+                            </span>
+                            <button onClick={() => setActiveShardEditor(null)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>✕</button>
+                          </div>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.5rem' }}>
+                            {[
+                              { type: null, label: lang === 'pt' ? 'Nenhum' : 'None', color: 'rgba(255,255,255,0.05)' },
+                              { type: 'Crimson', label: 'Crimson', color: '#ef4444' },
+                              { type: 'Amber', label: 'Amber', color: '#f59e0b' },
+                              { type: 'Azure', label: 'Azure', color: '#3b82f6' },
+                              { type: 'Violet', label: 'Violet', color: '#8b5cf6' },
+                              { type: 'Topaz', label: 'Topaz', color: '#ea580c' },
+                              { type: 'Emerald', label: 'Emerald', color: '#10b981' }
+                            ].map(opt => {
+                              const isSelected = (!shard && opt.type === null) || (shard && shard.type === opt.type);
+                              return (
+                                <button
+                                  key={opt.type || 'none'}
+                                  onClick={() => updateShard(opt.type, shard ? shard.tauforged : false)}
+                                  style={{
+                                    padding: '0.25rem 0.6rem', fontSize: '0.7rem', borderRadius: '4px',
+                                    border: isSelected ? `1px solid ${opt.color}` : '1px solid transparent',
+                                    background: isSelected ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.01)',
+                                    color: isSelected ? 'var(--text-bright)' : 'var(--text-muted)',
+                                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem'
+                                  }}
+                                >
+                                  {opt.type && <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: opt.color, display: 'inline-block' }} />}
+                                  {opt.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          {shard && shard.type && (
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.25rem' }}>
+                              <span style={{ fontSize: '0.75rem', color: 'var(--text-bright)' }}>
+                                ⭐ {lang === 'pt' ? 'Tauforged' : 'Tauforged Shard'}
+                              </span>
+                              <input
+                                type="checkbox"
+                                checked={shard.tauforged || false}
+                                onChange={(e) => updateShard(shard.type, e.target.checked)}
+                                style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: 'var(--gold)' }}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
 
                     {/* ABILITIES SECTION */}
                     {selectedWeapon.abilities && selectedWeapon.abilities.length > 0 && (
