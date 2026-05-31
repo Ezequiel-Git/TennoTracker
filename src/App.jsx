@@ -1747,13 +1747,257 @@ const formatPrimeSetParts = (type, lang) => {
   return `${partsStr} · ${typeStr}`;
 };
 
+// --- GLYPH AVATARS DATA ---
+const GLYPHS = {
+  excalibur: {
+    name: 'Excalibur',
+    emoji: '⚔️',
+    color: '#e5e7eb',
+    svg: (
+      <svg viewBox="0 0 100 100" fill="currentColor">
+        <circle cx="50" cy="50" r="45" fill="rgba(255,255,255,0.05)" stroke="currentColor" strokeWidth="2"/>
+        <path d="M50,15 L62,45 L50,40 L38,45 Z" fill="currentColor"/>
+        <path d="M50,40 L50,85" stroke="currentColor" strokeWidth="4"/>
+        <path d="M35,60 L50,55 L65,60" fill="none" stroke="currentColor" strokeWidth="3"/>
+      </svg>
+    )
+  },
+  lotus: {
+    name: 'Lotus',
+    emoji: '🪷',
+    color: '#d8b4fe',
+    svg: (
+      <svg viewBox="0 0 100 100" fill="currentColor">
+        <circle cx="50" cy="50" r="45" fill="rgba(139,92,246,0.05)" stroke="currentColor" strokeWidth="2"/>
+        <path d="M50,20 Q62,45 80,45 Q62,55 50,80 Q38,55 20,45 Q38,45 50,20 Z" fill="currentColor"/>
+        <circle cx="50" cy="48" r="6" fill="#030305"/>
+        <circle cx="50" cy="48" r="3" fill="currentColor"/>
+      </svg>
+    )
+  },
+  baro: {
+    name: "Baro Ki'Teer",
+    emoji: '💎',
+    color: '#dfb858',
+    svg: (
+      <svg viewBox="0 0 100 100" fill="currentColor">
+        <circle cx="50" cy="50" r="45" fill="rgba(204,163,75,0.05)" stroke="currentColor" strokeWidth="2"/>
+        <polygon points="50,22 72,50 50,78 28,50" fill="none" stroke="currentColor" strokeWidth="3"/>
+        <polygon points="50,32 64,50 50,68 36,50" fill="currentColor"/>
+        <circle cx="50" cy="50" r="4" fill="#030305"/>
+      </svg>
+    )
+  },
+  teshin: {
+    name: 'Teshin',
+    emoji: '🏮',
+    color: '#ef4444',
+    svg: (
+      <svg viewBox="0 0 100 100" fill="currentColor">
+        <circle cx="50" cy="50" r="45" fill="rgba(239,68,68,0.05)" stroke="currentColor" strokeWidth="2"/>
+        <path d="M25,25 L75,75 M75,25 L25,75" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/>
+        <path d="M50,25 A25,25 0 0,0 50,75 A25,25 0 0,0 50,25" fill="none" stroke="currentColor" strokeWidth="4"/>
+        <circle cx="50" cy="50" r="8" fill="currentColor"/>
+      </svg>
+    )
+  },
+  clem: {
+    name: 'Clem',
+    emoji: '🔫',
+    color: '#f97316',
+    svg: (
+      <svg viewBox="0 0 100 100" fill="currentColor">
+        <circle cx="50" cy="50" r="45" fill="rgba(249,115,22,0.05)" stroke="currentColor" strokeWidth="2"/>
+        <rect x="42" y="30" width="16" height="35" rx="8" fill="currentColor"/>
+        <circle cx="47" cy="40" r="3" fill="#030305"/>
+        <circle cx="53" cy="40" r="3" fill="#030305"/>
+        <line x1="33" y1="45" x2="33" y2="70" stroke="currentColor" strokeWidth="6" strokeLinecap="round"/>
+        <line x1="67" y1="45" x2="67" y2="70" stroke="currentColor" strokeWidth="6" strokeLinecap="round"/>
+      </svg>
+    )
+  },
+  stalker: {
+    name: 'Stalker',
+    emoji: '💀',
+    color: '#ef4444',
+    svg: (
+      <svg viewBox="0 0 100 100" fill="currentColor">
+        <circle cx="50" cy="50" r="45" fill="rgba(153,27,27,0.05)" stroke="currentColor" strokeWidth="2"/>
+        <path d="M30,30 L70,30 L50,75 Z" fill="currentColor"/>
+        <path d="M38,42 L62,42" stroke="#ef4444" strokeWidth="4" strokeLinecap="round"/>
+        <path d="M50,30 L50,55" stroke="#030305" strokeWidth="2"/>
+      </svg>
+    )
+  }
+};
+
+// --- SPACE PARTICLE BACKGROUND CANVAS ---
+function SpaceParticlesCanvas() {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animationFrameId;
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    class Particle {
+      constructor() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.size = Math.random() * 1.5 + 0.2;
+        this.speed = Math.random() * 0.15 + 0.05;
+        this.opacity = Math.random() * 0.5 + 0.2;
+        this.pulseSpeed = Math.random() * 0.01 + 0.005;
+        this.pulseDir = Math.random() > 0.5 ? 1 : -1;
+      }
+
+      update() {
+        this.y -= this.speed;
+        if (this.y < 0) {
+          this.y = height;
+          this.x = Math.random() * width;
+        }
+
+        this.opacity += this.pulseSpeed * this.pulseDir;
+        if (this.opacity > 0.85 || this.opacity < 0.15) {
+          this.pulseDir *= -1;
+        }
+      }
+
+      draw() {
+        ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    class ShootingStar {
+      constructor() {
+        this.reset();
+      }
+
+      reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * (height / 2);
+        this.len = Math.random() * 80 + 30;
+        this.speedX = Math.random() * 5 + 4;
+        this.speedY = Math.random() * 2 + 1;
+        this.thickness = Math.random() * 1.5 + 0.5;
+        this.active = false;
+        this.delay = Math.random() * 400 + 100;
+      }
+
+      update() {
+        if (!this.active) {
+          this.delay--;
+          if (this.delay <= 0) {
+            this.active = true;
+          }
+          return;
+        }
+
+        this.x -= this.speedX;
+        this.y += this.speedY;
+
+        if (this.x < -this.len || this.y > height + this.len) {
+          this.reset();
+        }
+      }
+
+      draw() {
+        if (!this.active) return;
+        
+        const style = getComputedStyle(document.body);
+        const glowColor = style.getPropertyValue('--border-glow').trim() || '#cca34b';
+        ctx.strokeStyle = glowColor;
+
+        ctx.lineWidth = this.thickness;
+        ctx.beginPath();
+        ctx.moveTo(this.x, this.y);
+        ctx.lineTo(this.x + this.len, this.y - (this.len * (this.speedY / this.speedX)));
+        ctx.stroke();
+      }
+    }
+
+    const particles = Array.from({ length: 70 }, () => new Particle());
+    const shootingStars = Array.from({ length: 2 }, () => new ShootingStar());
+
+    const render = () => {
+      ctx.clearRect(0, 0, width, height);
+
+      particles.forEach((p) => {
+        p.update();
+        p.draw();
+      });
+
+      shootingStars.forEach((s) => {
+        s.update();
+        s.draw();
+      });
+
+      animationFrameId = requestAnimationFrame(render);
+    };
+
+    render();
+
+    const handleResize = () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: -2,
+        pointerEvents: 'none'
+      }}
+    />
+  );
+}
+
 export default function App() {
   // --- STATE ---
   const [activeTab, setActiveTab] = useState('dashboard');
   const [username, setUsername] = useState(() => localStorage.getItem('wf_username') || 'Tenno');
   const [platform, setPlatform] = useState(() => localStorage.getItem('wf_platform') || 'PC');
+  const [uiTheme, setUiTheme] = useState(() => localStorage.getItem('wf_ui_theme') || 'orokin');
+  const [userAvatar, setUserAvatar] = useState(() => localStorage.getItem('wf_user_avatar') || 'excalibur');
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [masteryRank, setMasteryRank] = useState(() => Number(localStorage.getItem('wf_mastery_rank')) || 1);
   const [isAutoDetected, setIsAutoDetected] = useState(false);
+
+  // Sync theme selection to body class
+  useEffect(() => {
+    localStorage.setItem('wf_ui_theme', uiTheme);
+    // Remove all theme classes first
+    document.body.classList.remove('theme-orokin', 'theme-lotus', 'theme-corpus', 'theme-grineer', 'theme-infested');
+    // Add current theme class
+    document.body.classList.add(`theme-${uiTheme}`);
+  }, [uiTheme]);
+
+  useEffect(() => {
+    localStorage.setItem('wf_user_avatar', userAvatar);
+  }, [userAvatar]);
 
   // Language state
   const [lang, setLang] = useState(() => localStorage.getItem('wf_lang') || 'pt');
@@ -3103,6 +3347,7 @@ export default function App() {
 
   return (
     <>
+      <SpaceParticlesCanvas />
       {/* HEADER */}
       <header className="app-header">
         <div className="header-container">
@@ -3319,93 +3564,131 @@ export default function App() {
         
         {/* TAB 1: DASHBOARD */}
         {activeTab === 'dashboard' && (
-          <div>
+          <div className="tab-pane-fade">
             {/* USER PROFILE & STATS PANEL */}
             <div className="mastery-panel glass-panel">
               <div className="mastery-header">
-                <div>
-                  <h2 className="glow-purple" style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>
-                    {t.dashboard.profile}
-                  </h2>
-                  <div className="user-profile-row">
-                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                      <input 
-                        type="text" 
-                        value={username}
-                        onChange={(e) => {
-                          const newName = e.target.value;
-                          setUsername(newName);
-                          setIsAutoDetected(false); // Reset visual auto-detect tag on manual edit
-                          if (newName) {
-                            const savedInv = localStorage.getItem(`wf_inventory_${newName}`);
-                            if (savedInv) setInventory(JSON.parse(savedInv));
-                            else setInventory({});
-                            
-                            const savedMR = localStorage.getItem(`wf_mastery_rank_${newName}`);
-                            if (savedMR) setMasteryRank(Number(savedMR));
-                            else setMasteryRank(1);
-                            
-                            const savedSynd = localStorage.getItem(`wf_syndicates_${newName}`);
-                            if (savedSynd) setSyndicates(JSON.parse(savedSynd));
-                            else setSyndicates({
-                              'steel_meridian': { rank: 0, standing: 0 },
-                              'arbiters_hexis': { rank: 0, standing: 0 },
-                              'cephalon_suda': { rank: 0, standing: 0 },
-                              'perrin_sequence': { rank: 0, standing: 0 },
-                              'red_veil': { rank: 0, standing: 0 },
-                              'new_loka': { rank: 0, standing: 0 }
-                            });
-                            
-                            const savedMods = localStorage.getItem(`wf_mod_inventory_${newName}`);
-                            if (savedMods) setModInventory(JSON.parse(savedMods));
-                            else setModInventory({});
-                          }
-                        }}
-                      style={{
-                        background: 'transparent',
-                        border: 'none',
-                        borderBottom: '1px solid var(--border-color)',
-                        color: 'var(--text-bright)',
-                        fontSize: '1.15rem',
-                        fontWeight: '700',
-                        outline: 'none',
-                        padding: '0.1rem 2rem 0.1rem 0.2rem',
-                        width: '180px'
-                      }}
-                      title={lang === 'pt' ? "Nome de usuário do Warframe" :
-                             lang === 'es' ? "Nombre de usuario de Warframe" :
-                             lang === 'ja' ? "Warframeのユーザー名" :
-                             "Warframe username"}
-                    />
+                <div className="profile-summary-container">
+                  <div 
+                    onClick={() => setShowAvatarModal(true)}
+                    style={{ 
+                      width: '64px', 
+                      height: '64px', 
+                      borderRadius: '50%', 
+                      border: '2px solid var(--cyan)', 
+                      cursor: 'pointer',
+                      color: GLYPHS[userAvatar]?.color || 'var(--cyan)',
+                      boxShadow: '0 0 12px var(--cyan-dim)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      overflow: 'hidden',
+                      flexShrink: 0
+                    }}
+                    className="avatar-container-hover"
+                    title={t.general.avatarLabel}
+                  >
+                    {GLYPHS[userAvatar]?.svg || GLYPHS['excalibur'].svg}
+                  </div>
+
+                  <div className="profile-info-container">
+                    <h2 className="glow-purple profile-title">
+                      {t.dashboard.profile}
+                    </h2>
+                    <div className="user-profile-row">
+                      <div className="username-input-wrapper">
+                        <input 
+                          type="text" 
+                          value={username}
+                          onChange={(e) => {
+                            const newName = e.target.value;
+                            setUsername(newName);
+                            setIsAutoDetected(false); // Reset visual auto-detect tag on manual edit
+                            if (newName) {
+                              const savedInv = localStorage.getItem(`wf_inventory_${newName}`);
+                              if (savedInv) setInventory(JSON.parse(savedInv));
+                              else setInventory({});
+                              
+                              const savedMR = localStorage.getItem(`wf_mastery_rank_${newName}`);
+                              if (savedMR) setMasteryRank(Number(savedMR));
+                              else setMasteryRank(1);
+                              
+                              const savedSynd = localStorage.getItem(`wf_syndicates_${newName}`);
+                              if (savedSynd) setSyndicates(JSON.parse(savedSynd));
+                              else setSyndicates({
+                                'steel_meridian': { rank: 0, standing: 0 },
+                                'arbiters_hexis': { rank: 0, standing: 0 },
+                                'cephalon_suda': { rank: 0, standing: 0 },
+                                'perrin_sequence': { rank: 0, standing: 0 },
+                                'red_veil': { rank: 0, standing: 0 },
+                                'new_loka': { rank: 0, standing: 0 }
+                              });
+                              
+                              const savedMods = localStorage.getItem(`wf_mod_inventory_${newName}`);
+                              if (savedMods) setModInventory(JSON.parse(savedMods));
+                              else setModInventory({});
+                            }
+                          }}
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            borderBottom: '1px solid var(--border-color)',
+                            color: 'var(--text-bright)',
+                            fontSize: '1.15rem',
+                            fontWeight: '700',
+                            outline: 'none',
+                            padding: '0.1rem 2rem 0.1rem 0.2rem',
+                            width: '100%'
+                          }}
+                          title={lang === 'pt' ? "Nome de usuário do Warframe" :
+                                 lang === 'es' ? "Nombre de usuario de Warframe" :
+                                 lang === 'ja' ? "Warframe de usuário no jogo" :
+                                 "Warframe username"}
+                        />
+                        {isAutoDetected && (
+                          <UserCheck 
+                            size={16} 
+                            style={{ color: 'var(--cyan)', position: 'absolute', right: '0.25rem' }} 
+                            title={lang === 'pt' ? "Sincronizado automaticamente com o jogo (EE.log)" :
+                                   lang === 'es' ? "Sincronizado automáticamente con el juego (EE.log)" :
+                                   lang === 'ja' ? "実行中のゲームと自動同期 (EE.log)" :
+                                   "Auto-synced with running game (EE.log)"}
+                          />
+                        )}
+                      </div>
+                      
+                      <div className="profile-selects-container">
+                        <select 
+                          value={platform} 
+                          onChange={(e) => setPlatform(e.target.value)}
+                          className="mr-select platform-select-el"
+                        >
+                          <option value="PC">PC</option>
+                          <option value="XBOX">XBOX</option>
+                          <option value="PSN">PLAYSTATION</option>
+                          <option value="NINTENDO">SWITCH</option>
+                        </select>
+
+                        <select
+                          value={uiTheme}
+                          onChange={(e) => setUiTheme(e.target.value)}
+                          className="mr-select theme-select-el"
+                          title={t.general.themeLabel}
+                        >
+                          <option value="orokin">⚜️ Orokin</option>
+                          <option value="lotus">🪷 Lotus</option>
+                          <option value="corpus">🟦 Corpus</option>
+                          <option value="grineer">🟥 Grineer</option>
+                          <option value="infested">☣️ Infested</option>
+                        </select>
+                      </div>
+                    </div>
                     {isAutoDetected && (
-                      <UserCheck 
-                        size={16} 
-                        style={{ color: 'var(--cyan)', position: 'absolute', right: '0.25rem' }} 
-                        title={lang === 'pt' ? "Sincronizado automaticamente com o jogo (EE.log)" :
-                               lang === 'es' ? "Sincronizado automáticamente con el juego (EE.log)" :
-                               lang === 'ja' ? "実行中のゲームと自動同期 (EE.log)" :
-                               "Auto-synced with running game (EE.log)"}
-                      />
+                      <div className="auto-detect-badge">
+                        ✓ {t.general.autoDetected}
+                      </div>
                     )}
                   </div>
-                  
-                  <select 
-                    value={platform} 
-                    onChange={(e) => setPlatform(e.target.value)}
-                    className="mr-select"
-                    style={{ fontSize: '0.8rem', padding: '0.2rem 0.5rem' }}
-                  >
-                    <option value="PC">PC</option>
-                    <option value="XBOX">XBOX</option>
-                    <option value="PSN">PLAYSTATION</option>
-                    <option value="NINTENDO">SWITCH</option>
-                  </select>
-                </div>
-                {isAutoDetected && (
-                  <div style={{ fontSize: '0.7rem', color: 'var(--cyan)', marginTop: '0.25rem' }}>
-                    ✓ {t.general.autoDetected}
-                  </div>
-                )}
                 </div>
 
                 <div className="mr-selector-wrapper">
@@ -3878,7 +4161,7 @@ export default function App() {
 
         {/* TAB 2: ARSENAL & CHECKLIST */}
         {activeTab === 'weapons' && (
-          <div>
+          <div className="tab-pane-fade">
             {/* TOOLBAR FILTERS */}
             <div className="toolbar">
               <div className="search-input-wrapper">
@@ -4181,7 +4464,7 @@ export default function App() {
 
         {/* TAB: MODS CATALOG */}
         {activeTab === 'mods' && (
-          <div>
+          <div className="tab-pane-fade">
             {/* TOOLBAR FILTERS */}
             <div className="toolbar">
               <div className="search-input-wrapper">
@@ -4502,7 +4785,7 @@ export default function App() {
           };
 
           return (
-            <div className="planner-panel glass-panel">
+            <div className="planner-panel glass-panel tab-pane-fade">
               <div className="planner-intro">
                 <h2 className="glow-cyan" style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>
                   {t.planner.title}
@@ -4532,7 +4815,7 @@ export default function App() {
 
         {/* TAB: STAR CHART (MAPA ESTELAR) */}
         {activeTab === 'starchart' && (
-          <div className="starchart-tab-container">
+          <div className="starchart-tab-container tab-pane-fade">
             <div className="planner-intro" style={{ marginBottom: '2.5rem' }}>
               <h2 className="glow-cyan" style={{ fontSize: '1.8rem', marginBottom: '0.5rem', textShadow: '0 0 10px rgba(0, 240, 255, 0.4)' }}>
                 {t.starchart.title}
@@ -4916,7 +5199,7 @@ export default function App() {
 
         {/* TAB: JUNCTIONS (TERMINAIS) */}
         {activeTab === 'junctions' && (
-          <div className="junctions-tab-container">
+          <div className="junctions-tab-container tab-pane-fade">
             <div className="planner-intro" style={{ marginBottom: '2.5rem' }}>
               <h2 className="glow-gold" style={{ fontSize: '1.8rem', marginBottom: '0.5rem', textShadow: '0 0 10px rgba(212, 175, 55, 0.4)' }}>
                 {t.junctions.title}
@@ -5002,7 +5285,7 @@ export default function App() {
 
         {/* TAB 4: SINDICATOS */}
         {activeTab === 'syndicates' && (
-          <div>
+          <div className="tab-pane-fade">
             <div className="planner-intro" style={{ marginBottom: '2rem' }}>
               <h2 className="glow-cyan" style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>
                 {t.syndicates.title}
@@ -5274,7 +5557,7 @@ export default function App() {
 
         {/* TAB: NEMESIS (Liches & Irmãs) */}
         {activeTab === 'nemesis' && (
-          <div className="nemesis-panel glass-panel">
+          <div className="nemesis-panel glass-panel tab-pane-fade">
             <h2 className="glow-cyan" style={{ fontSize: '1.5rem', marginBottom: '1rem', textTransform: 'uppercase' }}>
               {t.nemesis.title}
             </h2>
@@ -5433,7 +5716,7 @@ export default function App() {
 
         {/* TAB 5: BACKUP & INTEGRATION */}
         {activeTab === 'sync' && (
-          <div className="sync-panel glass-panel">
+          <div className="sync-panel glass-panel tab-pane-fade">
             <h2 className="glow-cyan" style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>
               {t.sync.title}
             </h2>
@@ -6381,6 +6664,57 @@ export default function App() {
                 <X size={14} />
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* DYNAMIC GLYPH AVATAR SELECTION MODAL */}
+      {showAvatarModal && (
+        <div className="share-card-modal" onClick={(e) => { if (e.target === e.currentTarget) setShowAvatarModal(false); }}>
+          <div className="share-card-container" style={{ maxWidth: '420px', padding: '1.75rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <h3 className="glow-purple" style={{ fontSize: '1.2rem', textTransform: 'uppercase', fontFamily: 'var(--font-display)' }}>
+                {t.general?.avatarModalTitle || 'Escolha seu Glyph'}
+              </h3>
+              <button 
+                onClick={() => setShowAvatarModal(false)}
+                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', outline: 'none' }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+            
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+              {lang === 'pt' ? 'Personalize o ícone de exibição do seu Perfil Tenno.' : 'Personalize your Tenno Profile display badge.'}
+            </p>
+
+            <div className="glyph-modal-grid">
+              {Object.entries(GLYPHS).map(([key, data]) => {
+                const isActive = userAvatar === key;
+                return (
+                  <div 
+                    key={key} 
+                    className={`glyph-select-card ${isActive ? 'active' : ''}`}
+                    onClick={() => {
+                      setUserAvatar(key);
+                    }}
+                  >
+                    <div className="glyph-select-card-svg" style={{ color: data.color }}>
+                      {data.svg}
+                    </div>
+                    <span className="glyph-select-card-name">{data.name}</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            <button 
+              className="btn-primary" 
+              style={{ width: '100%', display: 'block', padding: '0.6rem' }}
+              onClick={() => setShowAvatarModal(false)}
+            >
+              {t.general?.avatarBtnClose || 'Salvar'}
+            </button>
           </div>
         </div>
       )}

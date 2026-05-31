@@ -5249,3 +5249,255 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+/* ==========================================================================
+   FACTION VISUAL THEMES (OROKIN, LOTUS, CORPUS, GRINEER, INFESTED)
+   ========================================================================== */
+
+/* Theme: Lotus (Purple/Cyan) */
+body.theme-lotus {
+  --border-color: #2b223c;
+  --border-glow: #a855f7;
+  --cyan: #06b6d4;
+  --cyan-rgb: 6, 182, 212;
+  --cyan-dim: rgba(6, 182, 212, 0.12);
+  --purple: #8b5cf6;
+  --purple-rgb: 139, 92, 246;
+  --purple-dim: rgba(139, 92, 246, 0.12);
+  --gold: #c084fc;
+}
+body.theme-lotus::before {
+  background: radial-gradient(circle at 50% -100px, rgba(168, 85, 247, 0.08) 0%, rgba(3, 3, 5, 0) 70%);
+}
+
+/* Theme: Corpus (Neon Tech Blue/Cyan) */
+body.theme-corpus {
+  --border-color: #172a3a;
+  --border-glow: #00f0ff;
+  --cyan: #00f0ff;
+  --cyan-rgb: 0, 240, 255;
+  --cyan-dim: rgba(0, 240, 255, 0.12);
+  --purple: #007aff;
+  --purple-rgb: 0, 122, 255;
+  --purple-dim: rgba(0, 122, 255, 0.12);
+  --gold: #00f0ff;
+}
+body.theme-corpus::before {
+  background: radial-gradient(circle at 50% -100px, rgba(0, 240, 255, 0.08) 0%, rgba(3, 3, 5, 0) 70%);
+}
+
+/* Theme: Grineer (Steel Red/Orange) */
+body.theme-grineer {
+  --border-color: #3b201a;
+  --border-glow: #ef4444;
+  --cyan: #f97316;
+  --cyan-rgb: 249, 115, 22;
+  --cyan-dim: rgba(249, 115, 22, 0.12);
+  --purple: #ef4444;
+  --purple-rgb: 239, 68, 68;
+  --purple-dim: rgba(239, 68, 68, 0.12);
+  --gold: #f97316;
+}
+body.theme-grineer::before {
+  background: radial-gradient(circle at 50% -100px, rgba(239, 68, 68, 0.08) 0%, rgba(3, 3, 5, 0) 70%);
+}
+
+/* Theme: Infested (Acid Green/Deep Purple) */
+body.theme-infested {
+  --border-color: #1e2c1e;
+  --border-glow: #22c55e;
+  --cyan: #a855f7;
+  --cyan-rgb: 168, 85, 247;
+  --cyan-dim: rgba(168, 85, 247, 0.12);
+  --purple: #22c55e;
+  --purple-rgb: 34, 197, 94;
+  --purple-dim: rgba(34, 197, 94, 0.12);
+  --gold: #a855f7;
+}
+body.theme-infested::before {
+  background: radial-gradient(circle at 50% -100px, rgba(34, 197, 94, 0.08) 0%, rgba(3, 3, 5, 0) 70%);
+}
+
+/* Theme Transition for smoother feels */
+body {
+  transition: background-color 0.4s ease;
+}
+.glass-panel {
+  transition: border-color var(--transition-smooth), box-shadow var(--transition-smooth), transform var(--transition-smooth), background-color 0.4s ease;
+}
+
+/* Glyph Avatar UI Custom Styling */
+.avatar-container-hover {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.avatar-container-hover:hover {
+  transform: scale(1.05);
+  border-color: var(--border-glow) !important;
+  box-shadow: 0 0 16px var(--cyan) !important;
+}
+
+/* Tab entrance fade-in animation */
+.tab-pane-fade {
+  animation: tabFadeIn 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes tabFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Glyph Selection Modal */
+.glyph-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.glyph-select-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.glyph-select-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--border-glow);
+  transform: translateY(-2px);
+}
+
+.glyph-select-card.active {
+  background: rgba(var(--cyan-rgb), 0.08);
+  border-color: var(--cyan);
+  box-shadow: 0 0 10px var(--cyan-dim);
+}
+
+.glyph-select-card-svg {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 1.5px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.glyph-select-card.active .glyph-select-card-svg {
+  border-color: var(--cyan);
+}
+
+.glyph-select-card-name {
+  font-size: 0.7rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.glyph-select-card.active .glyph-select-card-name {
+  color: var(--text-bright);
+}
+
+/* Mastery Profile Panel CSS */
+.profile-summary-container {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex: 1;
+  min-width: 280px;
+}
+
+.profile-info-container {
+  flex: 1;
+  min-width: 200px;
+}
+
+.profile-title {
+  font-size: 1.4rem;
+  margin-bottom: 0.25rem;
+}
+
+.user-profile-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.username-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 180px;
+}
+
+.profile-selects-container {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.platform-select-el,
+.theme-select-el {
+  font-size: 0.75rem;
+  padding: 0.15rem 0.4rem;
+  height: 28px;
+}
+
+.auto-detect-badge {
+  font-size: 0.7rem;
+  color: var(--cyan);
+  margin-top: 0.25rem;
+}
+
+/* Responsiveness for Mastery Profile Panel */
+@media (max-width: 768px) {
+  .mastery-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+@media (max-width: 600px) {
+  .mastery-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.25rem;
+  }
+  
+  .profile-summary-container {
+    width: 100%;
+    gap: 1rem;
+  }
+  
+  .user-profile-row {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .username-input-wrapper {
+    width: 100%;
+  }
+
+  .profile-selects-container {
+    width: 100%;
+  }
+
+  .profile-selects-container select {
+    flex: 1;
+    width: 50% !important;
+  }
+}
+
