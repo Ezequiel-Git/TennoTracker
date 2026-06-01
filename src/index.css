@@ -3596,7 +3596,7 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
   aspect-ratio: 16 / 9;
   min-height: 520px;
-  background-image: linear-gradient(rgba(10, 15, 30, 0.1), rgba(6, 10, 20, 0.35)), url('/starchart_accurate_bg.png');
+  background-image: linear-gradient(rgba(10, 15, 30, 0.1), rgba(6, 10, 20, 0.35)), url('../public/starchart_accurate_bg.png');
   background-size: cover;
   background-position: center;
   border-radius: 12px;
@@ -4354,7 +4354,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Earth (Terra) - blue ocean and green/brown lands with cyan atmosphere */
 [data-id="earth"] .planet-sphere {
-  background-image: url('/planets/earth.png') !important;
+  background-image: url('../public/planets/earth.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #1565c0;
@@ -4372,7 +4372,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Saturn (Saturno) - golden gas giant with simulated 3D rings */
 [data-id="saturn"] .planet-sphere {
-  background-image: url('/planets/saturn.png') !important;
+  background-image: url('../public/planets/saturn.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #dfb873;
@@ -4382,7 +4382,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Jupiter (Júpiter) - banded orange-brown with Great Red Spot */
 [data-id="jupiter"] .planet-sphere {
-  background-image: url('/planets/jupiter.png') !important;
+  background-image: url('../public/planets/jupiter.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #bd7a53;
@@ -4396,7 +4396,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Neptune (Netuno) - deep blue gas giant with stormy clouds */
 [data-id="neptune"] .planet-sphere {
-  background-image: url('/planets/neptune.png') !important;
+  background-image: url('../public/planets/neptune.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #002b8b;
@@ -4406,7 +4406,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Uranus (Urano) - pale cyan gas giant with subtle ring */
 [data-id="uranus"] .planet-sphere {
-  background-image: url('/planets/uranus.png') !important;
+  background-image: url('../public/planets/uranus.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #4ca9b3;
@@ -4416,7 +4416,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Mars (Marte) - red-orange planet with polar ice cap */
 [data-id="mars"] .planet-sphere {
-  background-image: url('/planets/mars.png') !important;
+  background-image: url('../public/planets/mars.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #e64a19;
@@ -4428,7 +4428,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Venus (Vênus) - toxic orange/yellow acid atmosphere */
 [data-id="venus"] .planet-sphere {
-  background-image: url('/planets/venus.png') !important;
+  background-image: url('../public/planets/venus.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #f57c00;
@@ -4437,7 +4437,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Mercury (Mercúrio) - heavily cratered gray rock */
 [data-id="mercury"] .planet-sphere {
-  background-image: url('/planets/mercury.png') !important;
+  background-image: url('../public/planets/mercury.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #78909c;
@@ -4446,7 +4446,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Void (Vazio) - glowing golden Orokin energy rift */
 [data-id="void"] .planet-sphere {
-  background-image: url('/planets/void.png') !important;
+  background-image: url('../public/planets/void.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #ffd54f;
@@ -4455,7 +4455,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Deimos - infested organic Heart of Deimos */
 [data-id="deimos"] .planet-sphere {
-  background-image: url('/planets/deimos.png') !important;
+  background-image: url('../public/planets/deimos.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #d50000;
@@ -4464,7 +4464,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Lua (Moon) - silvery cratered Moon with Orokin mysteries */
 [data-id="lua"] .planet-sphere {
-  background-image: url('/planets/lua.png') !important;
+  background-image: url('../public/planets/lua.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #b0bec5;
@@ -4473,7 +4473,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Zariman Ten Zero - Orokin golden colony ship */
 [data-id="zariman"] .planet-sphere {
-  background-image: url('/planets/zariman.png') !important;
+  background-image: url('../public/planets/zariman.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #c2b280;
@@ -4483,7 +4483,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Sanctum Anatomica - deep void with violet Void energy */
 [data-id="sanctum"] .planet-sphere {
-  background-image: url('/planets/sanctum.png') !important;
+  background-image: url('../public/planets/sanctum.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #7b1fa2;
@@ -4492,7 +4492,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Ceres - asteroid belt with bright Occator crater white spots */
 [data-id="ceres"] .planet-sphere {
-  background-image: url('/planets/ceres.png') !important;
+  background-image: url('../public/planets/ceres.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #90a4ae;
@@ -4501,7 +4501,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Phobos - dark irregular asteroid moon of Mars */
 [data-id="phobos"] .planet-sphere {
-  background-image: url('/planets/phobos.png') !important;
+  background-image: url('../public/planets/phobos.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #8d6e63;
@@ -4510,7 +4510,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Eris - dark green-yellow plagued infested surface */
 [data-id="eris"] .planet-sphere {
-  background-image: url('/planets/eris.png') !important;
+  background-image: url('../public/planets/eris.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #33691e;
@@ -4519,7 +4519,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Pluto - pale frozen methane gray/brown surface */
 [data-id="pluto"] .planet-sphere {
-  background-image: url('/planets/pluto.png') !important;
+  background-image: url('../public/planets/pluto.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #8d6e63;
@@ -4528,7 +4528,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Europa - icy moon with subsurface ocean and brown crack lines */
 [data-id="europa"] .planet-sphere {
-  background-image: url('/planets/europa.png') !important;
+  background-image: url('../public/planets/europa.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #00bcd4;
@@ -4537,7 +4537,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Sedna - distant cold red dwarf planet */
 [data-id="sedna"] .planet-sphere {
-  background-image: url('/planets/sedna.png') !important;
+  background-image: url('../public/planets/sedna.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #b71c1c;
@@ -4630,7 +4630,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Earth (Terra) Large */
 [data-id="earth"] .planet-sphere.large {
-  background-image: url('/planets/earth.png') !important;
+  background-image: url('../public/planets/earth.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #1565c0;
@@ -4640,7 +4640,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Saturn (Saturno) Large */
 [data-id="saturn"] .planet-sphere.large {
-  background-image: url('/planets/saturn.png') !important;
+  background-image: url('../public/planets/saturn.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #dfb873;
@@ -4650,7 +4650,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Jupiter (Júpiter) Large */
 [data-id="jupiter"] .planet-sphere.large {
-  background-image: url('/planets/jupiter.png') !important;
+  background-image: url('../public/planets/jupiter.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #bd7a53;
@@ -4662,7 +4662,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Neptune (Netuno) Large */
 [data-id="neptune"] .planet-sphere.large {
-  background-image: url('/planets/neptune.png') !important;
+  background-image: url('../public/planets/neptune.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #01579b;
@@ -4671,7 +4671,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Uranus (Urano) Large */
 [data-id="uranus"] .planet-sphere.large {
-  background-image: url('/planets/uranus.png') !important;
+  background-image: url('../public/planets/uranus.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #4ca9b3;
@@ -4680,7 +4680,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Mars (Marte) Large */
 [data-id="mars"] .planet-sphere.large {
-  background-image: url('/planets/mars.png') !important;
+  background-image: url('../public/planets/mars.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #e64a19;
@@ -4692,7 +4692,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Venus (Vênus) Large */
 [data-id="venus"] .planet-sphere.large {
-  background-image: url('/planets/venus.png') !important;
+  background-image: url('../public/planets/venus.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #f57c00;
@@ -4701,7 +4701,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Mercury (Mercúrio) Large */
 [data-id="mercury"] .planet-sphere.large {
-  background-image: url('/planets/mercury.png') !important;
+  background-image: url('../public/planets/mercury.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #78909c;
@@ -4710,7 +4710,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Void (Vazio) Large */
 [data-id="void"] .planet-sphere.large {
-  background-image: url('/planets/void.png') !important;
+  background-image: url('../public/planets/void.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #ffd54f;
@@ -4719,7 +4719,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Deimos Large */
 [data-id="deimos"] .planet-sphere.large {
-  background-image: url('/planets/deimos.png') !important;
+  background-image: url('../public/planets/deimos.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #d50000;
@@ -4728,7 +4728,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Lua Large */
 [data-id="lua"] .planet-sphere.large {
-  background-image: url('/planets/lua.png') !important;
+  background-image: url('../public/planets/lua.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #b0bec5;
@@ -4737,7 +4737,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Zariman Large */
 [data-id="zariman"] .planet-sphere.large {
-  background-image: url('/planets/zariman.png') !important;
+  background-image: url('../public/planets/zariman.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #c2b280;
@@ -4747,7 +4747,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Sanctum Large */
 [data-id="sanctum"] .planet-sphere.large {
-  background-image: url('/planets/sanctum.png') !important;
+  background-image: url('../public/planets/sanctum.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #7b1fa2;
@@ -4756,7 +4756,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Ceres Large */
 [data-id="ceres"] .planet-sphere.large {
-  background-image: url('/planets/ceres.png') !important;
+  background-image: url('../public/planets/ceres.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #90a4ae;
@@ -4765,7 +4765,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Phobos Large */
 [data-id="phobos"] .planet-sphere.large {
-  background-image: url('/planets/phobos.png') !important;
+  background-image: url('../public/planets/phobos.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #8d6e63;
@@ -4774,7 +4774,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Eris Large */
 [data-id="eris"] .planet-sphere.large {
-  background-image: url('/planets/eris.png') !important;
+  background-image: url('../public/planets/eris.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #33691e;
@@ -4783,7 +4783,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Pluto Large */
 [data-id="pluto"] .planet-sphere.large {
-  background-image: url('/planets/pluto.png') !important;
+  background-image: url('../public/planets/pluto.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #8d6e63;
@@ -4792,7 +4792,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Europa Large */
 [data-id="europa"] .planet-sphere.large {
-  background-image: url('/planets/europa.png') !important;
+  background-image: url('../public/planets/europa.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #00bcd4;
@@ -4801,7 +4801,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Sedna Large */
 [data-id="sedna"] .planet-sphere.large {
-  background-image: url('/planets/sedna.png') !important;
+  background-image: url('../public/planets/sedna.png') !important;
   background-size: cover !important;
   background-position: center !important;
   background-color: #b71c1c;
@@ -5248,4 +5248,395 @@ h1, h2, h3, h4, h5, h6 {
     width: 100% !important;
   }
 }
+
+/* ==========================================================================
+   FACTION VISUAL THEMES (OROKIN, LOTUS, CORPUS, GRINEER, INFESTED)
+   ========================================================================== */
+
+/* Theme: Lotus (Purple/Cyan) */
+body.theme-lotus {
+  --border-color: #2b223c;
+  --border-glow: #a855f7;
+  --cyan: #06b6d4;
+  --cyan-rgb: 6, 182, 212;
+  --cyan-dim: rgba(6, 182, 212, 0.12);
+  --purple: #8b5cf6;
+  --purple-rgb: 139, 92, 246;
+  --purple-dim: rgba(139, 92, 246, 0.12);
+  --gold: #c084fc;
+}
+body.theme-lotus::before {
+  background: radial-gradient(circle at 50% -100px, rgba(168, 85, 247, 0.08) 0%, rgba(3, 3, 5, 0) 70%);
+}
+
+/* Theme: Corpus (Neon Tech Blue/Cyan) */
+body.theme-corpus {
+  --border-color: #172a3a;
+  --border-glow: #00f0ff;
+  --cyan: #00f0ff;
+  --cyan-rgb: 0, 240, 255;
+  --cyan-dim: rgba(0, 240, 255, 0.12);
+  --purple: #007aff;
+  --purple-rgb: 0, 122, 255;
+  --purple-dim: rgba(0, 122, 255, 0.12);
+  --gold: #00f0ff;
+}
+body.theme-corpus::before {
+  background: radial-gradient(circle at 50% -100px, rgba(0, 240, 255, 0.08) 0%, rgba(3, 3, 5, 0) 70%);
+}
+
+/* Theme: Grineer (Steel Red/Orange) */
+body.theme-grineer {
+  --border-color: #3b201a;
+  --border-glow: #ef4444;
+  --cyan: #f97316;
+  --cyan-rgb: 249, 115, 22;
+  --cyan-dim: rgba(249, 115, 22, 0.12);
+  --purple: #ef4444;
+  --purple-rgb: 239, 68, 68;
+  --purple-dim: rgba(239, 68, 68, 0.12);
+  --gold: #f97316;
+}
+body.theme-grineer::before {
+  background: radial-gradient(circle at 50% -100px, rgba(239, 68, 68, 0.08) 0%, rgba(3, 3, 5, 0) 70%);
+}
+
+/* Theme: Infested (Acid Green/Deep Purple) */
+body.theme-infested {
+  --border-color: #1e2c1e;
+  --border-glow: #22c55e;
+  --cyan: #a855f7;
+  --cyan-rgb: 168, 85, 247;
+  --cyan-dim: rgba(168, 85, 247, 0.12);
+  --purple: #22c55e;
+  --purple-rgb: 34, 197, 94;
+  --purple-dim: rgba(34, 197, 94, 0.12);
+  --gold: #a855f7;
+}
+body.theme-infested::before {
+  background: radial-gradient(circle at 50% -100px, rgba(34, 197, 94, 0.08) 0%, rgba(3, 3, 5, 0) 70%);
+}
+
+/* Theme Transition for smoother feels */
+body {
+  transition: background-color 0.4s ease;
+}
+.glass-panel {
+  transition: border-color var(--transition-smooth), box-shadow var(--transition-smooth), transform var(--transition-smooth), background-color 0.4s ease;
+}
+
+/* Glyph Avatar UI Custom Styling */
+.avatar-container-hover {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.avatar-container-hover:hover {
+  transform: scale(1.05);
+  border-color: var(--border-glow) !important;
+  box-shadow: 0 0 16px var(--cyan) !important;
+}
+
+/* Tab entrance fade-in animation */
+.tab-pane-fade {
+  animation: tabFadeIn 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes tabFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Glyph Selection Modal */
+.glyph-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.glyph-select-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.glyph-select-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--border-glow);
+  transform: translateY(-2px);
+}
+
+.glyph-select-card.active {
+  background: rgba(var(--cyan-rgb), 0.08);
+  border-color: var(--cyan);
+  box-shadow: 0 0 10px var(--cyan-dim);
+}
+
+.glyph-select-card-svg {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 1.5px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.glyph-select-card.active .glyph-select-card-svg {
+  border-color: var(--cyan);
+}
+
+.glyph-select-card-name {
+  font-size: 0.7rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.glyph-select-card.active .glyph-select-card-name {
+  color: var(--text-bright);
+}
+
+/* Mastery Profile Panel CSS */
+.profile-summary-container {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex: 1;
+  min-width: 280px;
+}
+
+.profile-info-container {
+  flex: 1;
+  min-width: 200px;
+}
+
+.profile-title {
+  font-size: 1.4rem;
+  margin-bottom: 0.25rem;
+}
+
+.user-profile-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.username-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 180px;
+}
+
+.profile-selects-container {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.platform-select-el,
+.theme-select-el {
+  font-size: 0.75rem;
+  padding: 0.15rem 0.4rem;
+  height: 28px;
+}
+
+.auto-detect-badge {
+  font-size: 0.7rem;
+  color: var(--cyan);
+  margin-top: 0.25rem;
+}
+
+/* Responsiveness for Mastery Profile Panel */
+@media (max-width: 768px) {
+  .mastery-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+@media (max-width: 600px) {
+  .mastery-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.25rem;
+  }
+  
+  .profile-summary-container {
+    width: 100%;
+    gap: 1rem;
+  }
+  
+  .user-profile-row {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .username-input-wrapper {
+    width: 100%;
+  }
+
+  .profile-selects-container {
+    width: 100%;
+  }
+
+  .profile-selects-container select {
+    flex: 1;
+    width: 50% !important;
+  }
+}
+
+/* ==========================================================================
+   INTERACTIVE PREMIUM ANIMATIONS
+   ========================================================================== */
+
+/* Card Entry Staggered Animations */
+.weapon-card, .mod-card {
+  animation: cardFadeSlideUp 0.45s cubic-bezier(0.25, 0.8, 0.25, 1) both;
+}
+
+@keyframes cardFadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Planet Bobbing & Slow Orbit Spin */
+.planet-wrapper-bobbing {
+  animation: planetBob 6s ease-in-out infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes planetBob {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-4px); }
+  100% { transform: translateY(0px); }
+}
+
+.planet-sphere {
+  animation: planetSpin 120s linear infinite !important;
+}
+
+@keyframes planetSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Hologram Scanning Aura on Profile Glyph */
+.avatar-container-hover {
+  position: relative;
+  overflow: hidden;
+}
+
+.avatar-container-hover::after {
+  content: '';
+  position: absolute;
+  top: -100%;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(var(--cyan-rgb), 0.04) 30%,
+    rgba(var(--cyan-rgb), 0.22) 50%,
+    rgba(var(--cyan-rgb), 0.04) 70%,
+    transparent 100%
+  );
+  pointer-events: none;
+  animation: hologramScan 4.5s linear infinite;
+  opacity: 0.8;
+}
+
+@keyframes hologramScan {
+  0% { top: -100%; }
+  100% { top: 100%; }
+}
+
+/* Sync & Backup Custom Styles */
+.sync-box {
+  background: rgba(10, 15, 30, 0.45) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  backdrop-filter: blur(8px);
+  transition: border-color var(--transition-smooth), box-shadow var(--transition-smooth), transform var(--transition-smooth);
+}
+
+.sync-box:hover {
+  border-color: rgba(var(--cyan-rgb), 0.25);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(var(--cyan-rgb), 0.05);
+  transform: translateY(-2px);
+}
+
+.json-textarea {
+  background: rgba(0, 0, 0, 0.45) !important;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: #38bdf8;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.8rem;
+  padding: 0.75rem;
+  min-height: 120px;
+  resize: vertical;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.json-textarea:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 12px var(--cyan-dim);
+  outline: none;
+}
+
+.import-dropzone.active {
+  border-style: solid;
+  border-color: var(--cyan);
+  box-shadow: 0 0 25px rgba(var(--cyan-rgb), 0.25);
+  animation: dropzonePulse 1.5s infinite ease-in-out;
+}
+
+@keyframes dropzonePulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); border-color: var(--border-glow); }
+  100% { transform: scale(1); }
+}
+
+@keyframes tauforgedPulse {
+  0% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.06); filter: brightness(1.3); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+.tauforged-pulse {
+  animation: tauforgedPulse 2s infinite ease-in-out;
+}
+
+
 

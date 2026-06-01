@@ -32,9 +32,9 @@ import {
   Map as MapIcon,
   Milestone
 } from 'lucide-react';
-import { fallbackWeapons, getMasteryPointsRequired, getRankName } from './weaponsData';
+import { fallbackWeapons, getMasteryPointsRequired, getRankName, fallbackCompanions } from './weaponsData';
 import { weaponSourceMap } from './weaponSourceMap';
-import { fallbackMods } from './modsData';
+import { fallbackMods, fallbackArcanes } from './modsData';
 
 // --- STATIC CONFIGURATIONS FOR SYNDICATES ---
 const primarySyndicatesList = [
@@ -1747,13 +1747,295 @@ const formatPrimeSetParts = (type, lang) => {
   return `${partsStr} · ${typeStr}`;
 };
 
+// --- ANIMATED COUNTER COMPONENT ---
+function AnimatedCounter({ value, duration = 800, decimals = 0, suffix = '' }) {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let start = 0;
+    const end = parseFloat(value);
+    if (isNaN(end) || end === 0) {
+      setCount(value);
+      return;
+    }
+    
+    const startTime = performance.now();
+    
+    const updateCount = (now) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Ease out quad
+      const easeProgress = progress * (2 - progress);
+      const currentVal = easeProgress * end;
+      
+      setCount(currentVal.toFixed(decimals));
+      
+      if (progress < 1) {
+        requestAnimationFrame(updateCount);
+      } else {
+        setCount(end.toFixed(decimals));
+      }
+    };
+    
+    requestAnimationFrame(updateCount);
+  }, [value, duration, decimals]);
+
+  return <>{Number(count).toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}{suffix}</>;
+}
+
+// --- GLYPH AVATARS DATA ---
+const GLYPHS = {
+  excalibur: {
+    name: 'Excalibur',
+    emoji: '⚔️',
+    color: '#e5e7eb',
+    svg: (
+      <svg viewBox="0 0 100 100" fill="currentColor">
+        <circle cx="50" cy="50" r="45" fill="rgba(255,255,255,0.05)" stroke="currentColor" strokeWidth="2"/>
+        <path d="M50,15 L62,45 L50,40 L38,45 Z" fill="currentColor"/>
+        <path d="M50,40 L50,85" stroke="currentColor" strokeWidth="4"/>
+        <path d="M35,60 L50,55 L65,60" fill="none" stroke="currentColor" strokeWidth="3"/>
+      </svg>
+    )
+  },
+  lotus: {
+    name: 'Lotus',
+    emoji: '🪷',
+    color: '#d8b4fe',
+    svg: (
+      <svg viewBox="0 0 100 100" fill="currentColor">
+        <circle cx="50" cy="50" r="45" fill="rgba(139,92,246,0.05)" stroke="currentColor" strokeWidth="2"/>
+        <path d="M50,20 Q62,45 80,45 Q62,55 50,80 Q38,55 20,45 Q38,45 50,20 Z" fill="currentColor"/>
+        <circle cx="50" cy="48" r="6" fill="#030305"/>
+        <circle cx="50" cy="48" r="3" fill="currentColor"/>
+      </svg>
+    )
+  },
+  baro: {
+    name: "Baro Ki'Teer",
+    emoji: '💎',
+    color: '#dfb858',
+    svg: (
+      <svg viewBox="0 0 100 100" fill="currentColor">
+        <circle cx="50" cy="50" r="45" fill="rgba(204,163,75,0.05)" stroke="currentColor" strokeWidth="2"/>
+        <polygon points="50,22 72,50 50,78 28,50" fill="none" stroke="currentColor" strokeWidth="3"/>
+        <polygon points="50,32 64,50 50,68 36,50" fill="currentColor"/>
+        <circle cx="50" cy="50" r="4" fill="#030305"/>
+      </svg>
+    )
+  },
+  teshin: {
+    name: 'Teshin',
+    emoji: '🏮',
+    color: '#ef4444',
+    svg: (
+      <svg viewBox="0 0 100 100" fill="currentColor">
+        <circle cx="50" cy="50" r="45" fill="rgba(239,68,68,0.05)" stroke="currentColor" strokeWidth="2"/>
+        <path d="M25,25 L75,75 M75,25 L25,75" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/>
+        <path d="M50,25 A25,25 0 0,0 50,75 A25,25 0 0,0 50,25" fill="none" stroke="currentColor" strokeWidth="4"/>
+        <circle cx="50" cy="50" r="8" fill="currentColor"/>
+      </svg>
+    )
+  },
+  clem: {
+    name: 'Clem',
+    emoji: '🔫',
+    color: '#f97316',
+    svg: (
+      <svg viewBox="0 0 100 100" fill="currentColor">
+        <circle cx="50" cy="50" r="45" fill="rgba(249,115,22,0.05)" stroke="currentColor" strokeWidth="2"/>
+        <rect x="42" y="30" width="16" height="35" rx="8" fill="currentColor"/>
+        <circle cx="47" cy="40" r="3" fill="#030305"/>
+        <circle cx="53" cy="40" r="3" fill="#030305"/>
+        <line x1="33" y1="45" x2="33" y2="70" stroke="currentColor" strokeWidth="6" strokeLinecap="round"/>
+        <line x1="67" y1="45" x2="67" y2="70" stroke="currentColor" strokeWidth="6" strokeLinecap="round"/>
+      </svg>
+    )
+  },
+  stalker: {
+    name: 'Stalker',
+    emoji: '💀',
+    color: '#ef4444',
+    svg: (
+      <svg viewBox="0 0 100 100" fill="currentColor">
+        <circle cx="50" cy="50" r="45" fill="rgba(153,27,27,0.05)" stroke="currentColor" strokeWidth="2"/>
+        <path d="M30,30 L70,30 L50,75 Z" fill="currentColor"/>
+        <path d="M38,42 L62,42" stroke="#ef4444" strokeWidth="4" strokeLinecap="round"/>
+        <path d="M50,30 L50,55" stroke="#030305" strokeWidth="2"/>
+      </svg>
+    )
+  }
+};
+
+// --- SPACE PARTICLE BACKGROUND CANVAS ---
+function SpaceParticlesCanvas() {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animationFrameId;
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    class Particle {
+      constructor() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.size = Math.random() * 1.5 + 0.2;
+        this.speed = Math.random() * 0.15 + 0.05;
+        this.opacity = Math.random() * 0.5 + 0.2;
+        this.pulseSpeed = Math.random() * 0.01 + 0.005;
+        this.pulseDir = Math.random() > 0.5 ? 1 : -1;
+      }
+
+      update() {
+        this.y -= this.speed;
+        if (this.y < 0) {
+          this.y = height;
+          this.x = Math.random() * width;
+        }
+
+        this.opacity += this.pulseSpeed * this.pulseDir;
+        if (this.opacity > 0.85 || this.opacity < 0.15) {
+          this.pulseDir *= -1;
+        }
+      }
+
+      draw() {
+        ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    class ShootingStar {
+      constructor() {
+        this.reset();
+      }
+
+      reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * (height / 2);
+        this.len = Math.random() * 80 + 30;
+        this.speedX = Math.random() * 5 + 4;
+        this.speedY = Math.random() * 2 + 1;
+        this.thickness = Math.random() * 1.5 + 0.5;
+        this.active = false;
+        this.delay = Math.random() * 400 + 100;
+      }
+
+      update() {
+        if (!this.active) {
+          this.delay--;
+          if (this.delay <= 0) {
+            this.active = true;
+          }
+          return;
+        }
+
+        this.x -= this.speedX;
+        this.y += this.speedY;
+
+        if (this.x < -this.len || this.y > height + this.len) {
+          this.reset();
+        }
+      }
+
+      draw() {
+        if (!this.active) return;
+        
+        const style = getComputedStyle(document.body);
+        const glowColor = style.getPropertyValue('--border-glow').trim() || '#cca34b';
+        ctx.strokeStyle = glowColor;
+
+        ctx.lineWidth = this.thickness;
+        ctx.beginPath();
+        ctx.moveTo(this.x, this.y);
+        ctx.lineTo(this.x + this.len, this.y - (this.len * (this.speedY / this.speedX)));
+        ctx.stroke();
+      }
+    }
+
+    const particles = Array.from({ length: 70 }, () => new Particle());
+    const shootingStars = Array.from({ length: 2 }, () => new ShootingStar());
+
+    const render = () => {
+      ctx.clearRect(0, 0, width, height);
+
+      particles.forEach((p) => {
+        p.update();
+        p.draw();
+      });
+
+      shootingStars.forEach((s) => {
+        s.update();
+        s.draw();
+      });
+
+      animationFrameId = requestAnimationFrame(render);
+    };
+
+    render();
+
+    const handleResize = () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: -2,
+        pointerEvents: 'none'
+      }}
+    />
+  );
+}
+
 export default function App() {
   // --- STATE ---
   const [activeTab, setActiveTab] = useState('dashboard');
   const [username, setUsername] = useState(() => localStorage.getItem('wf_username') || 'Tenno');
   const [platform, setPlatform] = useState(() => localStorage.getItem('wf_platform') || 'PC');
+  const [uiTheme, setUiTheme] = useState(() => localStorage.getItem('wf_ui_theme') || 'orokin');
+  const [userAvatar, setUserAvatar] = useState(() => localStorage.getItem('wf_user_avatar') || 'excalibur');
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [masteryRank, setMasteryRank] = useState(() => Number(localStorage.getItem('wf_mastery_rank')) || 1);
   const [isAutoDetected, setIsAutoDetected] = useState(false);
+  const [importPreview, setImportPreview] = useState(null);
+
+  // Sync theme selection to body class
+  useEffect(() => {
+    localStorage.setItem('wf_ui_theme', uiTheme);
+    // Remove all theme classes first
+    document.body.classList.remove('theme-orokin', 'theme-lotus', 'theme-corpus', 'theme-grineer', 'theme-infested');
+    // Add current theme class
+    document.body.classList.add(`theme-${uiTheme}`);
+  }, [uiTheme]);
+
+  useEffect(() => {
+    localStorage.setItem('wf_user_avatar', userAvatar);
+  }, [userAvatar]);
 
   // Language state
   const [lang, setLang] = useState(() => localStorage.getItem('wf_lang') || 'pt');
@@ -1839,7 +2121,7 @@ export default function App() {
   const [starChartMode, setStarChartMode] = useState('normal');
   const [selectedPlanetId, setSelectedPlanetId] = useState('earth');
 
-  const [weapons, setWeapons] = useState(fallbackWeapons);
+  const [weapons, setWeapons] = useState(() => [...fallbackWeapons, ...fallbackCompanions]);
   const [loadingApi, setLoadingApi] = useState(false);
   const [isLiveLoaded, setIsLiveLoaded] = useState(false);
   const [isOfflineMode, setIsOfflineMode] = useState(() => localStorage.getItem('tennoTracker_offline') === 'true');
@@ -1863,6 +2145,7 @@ export default function App() {
 
   // Modal State
   const [selectedWeapon, setSelectedWeapon] = useState(null);
+  const [activeShardEditor, setActiveShardEditor] = useState(null);
 
   // Import / Export State
   const [importJson, setImportJson] = useState('');
@@ -1900,6 +2183,31 @@ export default function App() {
   const [modFilterType, setModFilterType] = useState('all');
   const [modFilterStatus, setModFilterStatus] = useState('all');
   const [modSortBy, setModSortBy] = useState('name-asc');
+  
+  const [modsSubTab, setModsSubTab] = useState('mods'); // 'mods' or 'arcanes'
+  const [arcaneInventory, setArcaneInventory] = useState(() => {
+    try {
+      const stored = localStorage.getItem('tennoTracker_arcanes');
+      return stored ? JSON.parse(stored) : {};
+    } catch { return {}; }
+  });
+  const [arcaneSearch, setArcaneSearch] = useState('');
+  const [arcaneFilterCategory, setArcaneFilterCategory] = useState('all');
+
+  useEffect(() => {
+    localStorage.setItem('tennoTracker_arcanes', JSON.stringify(arcaneInventory));
+  }, [arcaneInventory]);
+  
+  const [warframeShards, setWarframeShards] = useState(() => {
+    try {
+      const stored = localStorage.getItem('tennoTracker_warframe_shards');
+      return stored ? JSON.parse(stored) : {};
+    } catch { return {}; }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('tennoTracker_warframe_shards', JSON.stringify(warframeShards));
+  }, [warframeShards]);
   
   // Performance: Lazy Loading Mods Grid
   const [visibleModsCount, setVisibleModsCount] = useState(80);
@@ -2065,7 +2373,7 @@ export default function App() {
   // Fetch Live Weapons & Warframes from WarframeStat API
   useEffect(() => {
     if (isOfflineMode) {
-      setWeapons(fallbackWeapons);
+      setWeapons([...fallbackWeapons, ...fallbackCompanions]);
       setIsLiveLoaded(false);
       setLoadingApi(false);
       return;
@@ -2110,14 +2418,14 @@ export default function App() {
             .map(item => mapItemData(item, true, lang));
         }
         
-        const merged = [...parsedWeapons, ...parsedWarframes];
+        const merged = [...parsedWeapons, ...parsedWarframes, ...fallbackCompanions];
         // Sort by name
         merged.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
         setWeapons(merged);
         setIsLiveLoaded(true);
       } catch (err) {
         console.error('Failed to fetch live Warframe items, using fallback data:', err);
-        setWeapons(fallbackWeapons);
+        setWeapons([...fallbackWeapons, ...fallbackCompanions]);
         setIsLiveLoaded(false);
       } finally {
         setLoadingApi(false);
@@ -2300,20 +2608,94 @@ export default function App() {
       const next = JSON.parse(JSON.stringify(prev)); // Deep copy
       
       const adjustSingle = (key, amt) => {
-        const currentRank = next[key]?.rank ?? 0;
-        const currentStanding = next[key]?.standing ?? 0;
+        if (!next[key]) return;
         
-        let maxStd = syndicateMaxStanding[String(currentRank)] || 132000;
+        let rank = next[key].rank ?? 0;
+        let standing = next[key].standing ?? 0;
+        let remaining = amt;
         
-        let newStanding = currentStanding + amt;
-        if (newStanding > maxStd) {
-          newStanding = maxStd;
-        } else if (newStanding < 0) {
-          newStanding = 0;
+        while (remaining !== 0) {
+          const cap = syndicateMaxStanding[String(rank)] || 132000;
+          
+          if (remaining > 0) {
+            // Gaining positive standing
+            if (rank >= 0) {
+              const space = cap - standing;
+              if (remaining <= space) {
+                standing += remaining;
+                remaining = 0;
+              } else {
+                standing = cap;
+                remaining = 0; // Cap at positive rank ceiling (requires manual sacrifice/level up)
+              }
+            } else {
+              // Negative rank: positive standing reduces the negative standing depth
+              if (remaining <= standing) {
+                standing -= remaining;
+                remaining = 0;
+              } else {
+                // Clear this negative rank and rank up towards neutral
+                remaining -= standing;
+                standing = 0;
+                if (rank === -2) {
+                  rank = -1;
+                  standing = syndicateMaxStanding['-1'] || 22000; // Starts at max depth of -1
+                } else if (rank === -1) {
+                  rank = 0;
+                  standing = 0; // Starts at 0 depth of Rank 0 (Neutral)
+                }
+              }
+            }
+          } else {
+            // Losing standing (remaining is negative, e.g. gaining negative depth)
+            const loss = -remaining;
+            
+            if (rank > 0) {
+              if (loss <= standing) {
+                standing -= loss;
+                remaining = 0;
+              } else {
+                // Rank down to previous positive rank
+                const used = standing;
+                remaining += used;
+                rank = rank - 1;
+                standing = syndicateMaxStanding[String(rank)] || 22000;
+              }
+            } else if (rank === 0) {
+              if (loss <= standing) {
+                standing -= loss;
+                remaining = 0;
+              } else {
+                // Rank down to Rank -1
+                const used = standing;
+                remaining += used;
+                rank = -1;
+                standing = 0; // Opposed rank starts at 0 depth
+              }
+            } else {
+              // Negative rank: losing standing pushes us deeper into negative depth
+              const space = cap - standing;
+              if (loss <= space) {
+                standing += loss;
+                remaining = 0;
+              } else {
+                if (rank === -1) {
+                  // Rank down to Rank -2
+                  remaining += space;
+                  rank = -2;
+                  standing = 0; // Enemy rank starts at 0 depth
+                } else if (rank === -2) {
+                  // Absolute bottom cap
+                  standing = cap;
+                  remaining = 0;
+                }
+              }
+            }
+          }
         }
-        if (next[key]) {
-          next[key].standing = newStanding;
-        }
+        
+        next[key].rank = rank;
+        next[key].standing = standing;
       };
 
       // Adjust main syndicate
@@ -2443,6 +2825,7 @@ export default function App() {
       `🗡️ **Secundárias:** ${stats.secondaryMastered}/${stats.secondaryCount}`,
       `🔪 **Corpo a Corpo:** ${stats.meleeMastered}/${stats.meleeCount}`,
       `🎭 **Warframes:** ${stats.warframeMastered}/${stats.warframeCount}`,
+      `🐾 **Companheiros:** ${stats.companionMastered}/${stats.companionCount}`,
       `👹 **Nêmesis:** ${stats.nemesisMastered}/${stats.nemesisCount}`,
       ``,
       `*Gerado pelo Warframe Mastery Tracker*`
@@ -2637,6 +3020,8 @@ export default function App() {
     let meleeMastered = 0;
     let warframeCount = 0;
     let warframeMastered = 0;
+    let companionCount = 0;
+    let companionMastered = 0;
     let nemesisCount = 0;
     let nemesisMastered = 0;
     let weaponMasteryPoints = 0;
@@ -2647,7 +3032,7 @@ export default function App() {
       if (o.owned) ownedCount++;
       if (o.mastered) {
         masteredCount++;
-        if (e.type === 'Warframe') {
+        if (e.type === 'Warframe' || e.type === 'Companion') {
           weaponMasteryPoints += 6000;
         } else if (e.isNemesis) {
           weaponMasteryPoints += 4000;
@@ -2671,6 +3056,9 @@ export default function App() {
       } else if (e.type === 'Warframe') {
         warframeCount++;
         if (o.mastered) warframeMastered++;
+      } else if (e.type === 'Companion') {
+        companionCount++;
+        if (o.mastered) companionMastered++;
       }
     });
 
@@ -2714,6 +3102,8 @@ export default function App() {
       meleeMastered,
       warframeCount,
       warframeMastered,
+      companionCount,
+      companionMastered,
       nemesisCount,
       nemesisMastered
     };
@@ -2784,12 +3174,6 @@ export default function App() {
         const stateA = (inventory[a.id]?.mastered || inventory[a.name]?.mastered) ? 1 : 0;
         const stateB = (inventory[b.id]?.mastered || inventory[b.name]?.mastered) ? 1 : 0;
         if (stateA !== stateB) return stateA - stateB;
-        return (a.name || '').localeCompare(b.name || '');
-      }
-      if (sortBy === 'vaulted-first') {
-        const valA = a.vaulted ? 1 : 0;
-        const valB = b.vaulted ? 1 : 0;
-        if (valA !== valB) return valB - valA;
         return (a.name || '').localeCompare(b.name || '');
       }
       return 0;
@@ -2925,7 +3309,9 @@ export default function App() {
       modInventory,
       starChartNormal,
       starChartSteelPath,
-      starChartJunctions
+      starChartJunctions,
+      arcanes: arcaneInventory,
+      warframeShards: warframeShards
     };
     const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(exportObject, null, 2))}`;
     const downloadAnchor = document.createElement('a');
@@ -2936,7 +3322,7 @@ export default function App() {
     downloadAnchor.remove();
   };
 
-  const performImport = (jsonText) => {
+  const analyzeImportData = (jsonText) => {
     setSyncStatus(null);
     try {
       const parsed = JSON.parse(jsonText);
@@ -2952,30 +3338,26 @@ export default function App() {
         throw new Error(invalidJsonError);
       }
 
+      // Direct TennoTracker backup format
       if (parsed.inventory && typeof parsed.inventory === 'object') {
-        setInventory(parsed.inventory);
-        if (parsed.username) setUsername(parsed.username);
-        if (parsed.platform) setPlatform(parsed.platform);
-        if (parsed.masteryRank) setMasteryRank(Number(parsed.masteryRank) || 1);
-        if (parsed.syndicates && typeof parsed.syndicates === 'object') {
-          setSyndicates(parsed.syndicates);
-        }
-        if (parsed.modInventory && typeof parsed.modInventory === 'object') {
-          setModInventory(parsed.modInventory);
-        }
-        if (parsed.starChartNormal && typeof parsed.starChartNormal === 'object') {
-          setStarChartNormal(parsed.starChartNormal);
-        }
-        if (parsed.starChartSteelPath && typeof parsed.starChartSteelPath === 'object') {
-          setStarChartSteelPath(parsed.starChartSteelPath);
-        }
-        if (parsed.starChartJunctions && Array.isArray(parsed.starChartJunctions)) {
-          setStarChartJunctions(parsed.starChartJunctions);
-        }
-        setSyncStatus({ type: 'success', message: t.sync.successImport });
-        setImportJson('');
-        return true;
+        const weaponsCount = Object.keys(parsed.inventory).length;
+        const modsCount = parsed.modInventory ? Object.keys(parsed.modInventory).length : 0;
+        const syndicatesCount = parsed.syndicates ? Object.keys(parsed.syndicates).length : 0;
+        const arcanesCount = parsed.arcanes ? Object.keys(parsed.arcanes).length : 0;
+        
+        return {
+          type: 'direct',
+          username: parsed.username || '',
+          platform: parsed.platform || 'PC',
+          masteryRank: parsed.masteryRank || 1,
+          weaponsCount,
+          modsCount,
+          syndicatesCount,
+          arcanesCount,
+          rawData: parsed
+        };
       } else {
+        // Smart importer for AlecaFrame or generic JSON array/object
         const newInventory = { ...inventory };
         let importCount = 0;
 
@@ -3021,17 +3403,21 @@ export default function App() {
         scanObject(parsed);
         
         if (importCount > 0) {
-          setInventory(newInventory);
-          const successMsg = lang === 'pt' 
-            ? `Importação inteligente concluída! Identificamos e importamos o status de ${importCount} itens.` 
-            : lang === 'es' 
-            ? `¡Importación inteligente completada! Identificamos e importamos el estado de ${importCount} objetos.`
-            : lang === 'ja' 
-            ? `スマートインポートが完了しました！${importCount}個のアイテムの状態をインポートしました。`
-            : `Smart import completed! Identified and imported status for ${importCount} items.`;
-          setSyncStatus({ type: 'success', message: successMsg });
-          setImportJson('');
-          return true;
+          return {
+            type: 'smart',
+            username: parsed.username || username || '',
+            platform: parsed.platform || platform || 'PC',
+            masteryRank: parsed.masteryRank || masteryRank || 1,
+            weaponsCount: importCount,
+            modsCount: 0,
+            syndicatesCount: 0,
+            rawData: {
+              inventory: newInventory,
+              username: parsed.username || username,
+              platform: parsed.platform || platform,
+              masteryRank: parsed.masteryRank || masteryRank
+            }
+          };
         } else {
           const noItemsError = lang === 'pt'
             ? 'Nenhum item conhecido encontrado no JSON importado. Certifique-se de que os nomes coincidem.'
@@ -3046,13 +3432,20 @@ export default function App() {
     } catch (err) {
       const errorLabel = lang === 'pt' ? 'Erro ao importar JSON' : lang === 'es' ? 'Error al importar JSON' : lang === 'ja' ? 'JSONインポートエラー' : 'Error importing JSON';
       setSyncStatus({ type: 'error', message: `${errorLabel}: ${err.message}` });
-      return false;
+      return null;
+    }
+  };
+
+  const handleImportAttempt = (jsonText) => {
+    const preview = analyzeImportData(jsonText);
+    if (preview) {
+      setImportPreview(preview);
     }
   };
 
   const handleImportData = (e) => {
     e.preventDefault();
-    performImport(importJson);
+    handleImportAttempt(importJson);
   };
 
   const handleDrag = (e) => {
@@ -3086,7 +3479,7 @@ export default function App() {
     const reader = new FileReader();
     reader.onload = (e) => {
       const text = e.target.result;
-      performImport(text);
+      handleImportAttempt(text);
     };
     reader.onerror = () => {
       const readErrorMsg = lang === 'pt' 
@@ -3103,6 +3496,7 @@ export default function App() {
 
   return (
     <>
+      <SpaceParticlesCanvas />
       {/* HEADER */}
       <header className="app-header">
         <div className="header-container">
@@ -3319,93 +3713,131 @@ export default function App() {
         
         {/* TAB 1: DASHBOARD */}
         {activeTab === 'dashboard' && (
-          <div>
+          <div className="tab-pane-fade">
             {/* USER PROFILE & STATS PANEL */}
             <div className="mastery-panel glass-panel">
               <div className="mastery-header">
-                <div>
-                  <h2 className="glow-purple" style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>
-                    {t.dashboard.profile}
-                  </h2>
-                  <div className="user-profile-row">
-                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                      <input 
-                        type="text" 
-                        value={username}
-                        onChange={(e) => {
-                          const newName = e.target.value;
-                          setUsername(newName);
-                          setIsAutoDetected(false); // Reset visual auto-detect tag on manual edit
-                          if (newName) {
-                            const savedInv = localStorage.getItem(`wf_inventory_${newName}`);
-                            if (savedInv) setInventory(JSON.parse(savedInv));
-                            else setInventory({});
-                            
-                            const savedMR = localStorage.getItem(`wf_mastery_rank_${newName}`);
-                            if (savedMR) setMasteryRank(Number(savedMR));
-                            else setMasteryRank(1);
-                            
-                            const savedSynd = localStorage.getItem(`wf_syndicates_${newName}`);
-                            if (savedSynd) setSyndicates(JSON.parse(savedSynd));
-                            else setSyndicates({
-                              'steel_meridian': { rank: 0, standing: 0 },
-                              'arbiters_hexis': { rank: 0, standing: 0 },
-                              'cephalon_suda': { rank: 0, standing: 0 },
-                              'perrin_sequence': { rank: 0, standing: 0 },
-                              'red_veil': { rank: 0, standing: 0 },
-                              'new_loka': { rank: 0, standing: 0 }
-                            });
-                            
-                            const savedMods = localStorage.getItem(`wf_mod_inventory_${newName}`);
-                            if (savedMods) setModInventory(JSON.parse(savedMods));
-                            else setModInventory({});
-                          }
-                        }}
-                      style={{
-                        background: 'transparent',
-                        border: 'none',
-                        borderBottom: '1px solid var(--border-color)',
-                        color: 'var(--text-bright)',
-                        fontSize: '1.15rem',
-                        fontWeight: '700',
-                        outline: 'none',
-                        padding: '0.1rem 2rem 0.1rem 0.2rem',
-                        width: '180px'
-                      }}
-                      title={lang === 'pt' ? "Nome de usuário do Warframe" :
-                             lang === 'es' ? "Nombre de usuario de Warframe" :
-                             lang === 'ja' ? "Warframeのユーザー名" :
-                             "Warframe username"}
-                    />
+                <div className="profile-summary-container">
+                  <div 
+                    onClick={() => setShowAvatarModal(true)}
+                    style={{ 
+                      width: '64px', 
+                      height: '64px', 
+                      borderRadius: '50%', 
+                      border: '2px solid var(--cyan)', 
+                      cursor: 'pointer',
+                      color: GLYPHS[userAvatar]?.color || 'var(--cyan)',
+                      boxShadow: '0 0 12px var(--cyan-dim)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      overflow: 'hidden',
+                      flexShrink: 0
+                    }}
+                    className="avatar-container-hover"
+                    title={t.general.avatarLabel}
+                  >
+                    {GLYPHS[userAvatar]?.svg || GLYPHS['excalibur'].svg}
+                  </div>
+
+                  <div className="profile-info-container">
+                    <h2 className="glow-purple profile-title">
+                      {t.dashboard.profile}
+                    </h2>
+                    <div className="user-profile-row">
+                      <div className="username-input-wrapper">
+                        <input 
+                          type="text" 
+                          value={username}
+                          onChange={(e) => {
+                            const newName = e.target.value;
+                            setUsername(newName);
+                            setIsAutoDetected(false); // Reset visual auto-detect tag on manual edit
+                            if (newName) {
+                              const savedInv = localStorage.getItem(`wf_inventory_${newName}`);
+                              if (savedInv) setInventory(JSON.parse(savedInv));
+                              else setInventory({});
+                              
+                              const savedMR = localStorage.getItem(`wf_mastery_rank_${newName}`);
+                              if (savedMR) setMasteryRank(Number(savedMR));
+                              else setMasteryRank(1);
+                              
+                              const savedSynd = localStorage.getItem(`wf_syndicates_${newName}`);
+                              if (savedSynd) setSyndicates(JSON.parse(savedSynd));
+                              else setSyndicates({
+                                'steel_meridian': { rank: 0, standing: 0 },
+                                'arbiters_hexis': { rank: 0, standing: 0 },
+                                'cephalon_suda': { rank: 0, standing: 0 },
+                                'perrin_sequence': { rank: 0, standing: 0 },
+                                'red_veil': { rank: 0, standing: 0 },
+                                'new_loka': { rank: 0, standing: 0 }
+                              });
+                              
+                              const savedMods = localStorage.getItem(`wf_mod_inventory_${newName}`);
+                              if (savedMods) setModInventory(JSON.parse(savedMods));
+                              else setModInventory({});
+                            }
+                          }}
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            borderBottom: '1px solid var(--border-color)',
+                            color: 'var(--text-bright)',
+                            fontSize: '1.15rem',
+                            fontWeight: '700',
+                            outline: 'none',
+                            padding: '0.1rem 2rem 0.1rem 0.2rem',
+                            width: '100%'
+                          }}
+                          title={lang === 'pt' ? "Nome de usuário do Warframe" :
+                                 lang === 'es' ? "Nombre de usuario de Warframe" :
+                                 lang === 'ja' ? "Warframe de usuário no jogo" :
+                                 "Warframe username"}
+                        />
+                        {isAutoDetected && (
+                          <UserCheck 
+                            size={16} 
+                            style={{ color: 'var(--cyan)', position: 'absolute', right: '0.25rem' }} 
+                            title={lang === 'pt' ? "Sincronizado automaticamente com o jogo (EE.log)" :
+                                   lang === 'es' ? "Sincronizado automáticamente con el juego (EE.log)" :
+                                   lang === 'ja' ? "実行中のゲームと自動同期 (EE.log)" :
+                                   "Auto-synced with running game (EE.log)"}
+                          />
+                        )}
+                      </div>
+                      
+                      <div className="profile-selects-container">
+                        <select 
+                          value={platform} 
+                          onChange={(e) => setPlatform(e.target.value)}
+                          className="mr-select platform-select-el"
+                        >
+                          <option value="PC">PC</option>
+                          <option value="XBOX">XBOX</option>
+                          <option value="PSN">PLAYSTATION</option>
+                          <option value="NINTENDO">SWITCH</option>
+                        </select>
+
+                        <select
+                          value={uiTheme}
+                          onChange={(e) => setUiTheme(e.target.value)}
+                          className="mr-select theme-select-el"
+                          title={t.general.themeLabel}
+                        >
+                          <option value="orokin">⚜️ Orokin</option>
+                          <option value="lotus">🪷 Lotus</option>
+                          <option value="corpus">🟦 Corpus</option>
+                          <option value="grineer">🟥 Grineer</option>
+                          <option value="infested">☣️ Infested</option>
+                        </select>
+                      </div>
+                    </div>
                     {isAutoDetected && (
-                      <UserCheck 
-                        size={16} 
-                        style={{ color: 'var(--cyan)', position: 'absolute', right: '0.25rem' }} 
-                        title={lang === 'pt' ? "Sincronizado automaticamente com o jogo (EE.log)" :
-                               lang === 'es' ? "Sincronizado automáticamente con el juego (EE.log)" :
-                               lang === 'ja' ? "実行中のゲームと自動同期 (EE.log)" :
-                               "Auto-synced with running game (EE.log)"}
-                      />
+                      <div className="auto-detect-badge">
+                        ✓ {t.general.autoDetected}
+                      </div>
                     )}
                   </div>
-                  
-                  <select 
-                    value={platform} 
-                    onChange={(e) => setPlatform(e.target.value)}
-                    className="mr-select"
-                    style={{ fontSize: '0.8rem', padding: '0.2rem 0.5rem' }}
-                  >
-                    <option value="PC">PC</option>
-                    <option value="XBOX">XBOX</option>
-                    <option value="PSN">PLAYSTATION</option>
-                    <option value="NINTENDO">SWITCH</option>
-                  </select>
-                </div>
-                {isAutoDetected && (
-                  <div style={{ fontSize: '0.7rem', color: 'var(--cyan)', marginTop: '0.25rem' }}>
-                    ✓ {t.general.autoDetected}
-                  </div>
-                )}
                 </div>
 
                 <div className="mr-selector-wrapper">
@@ -3432,7 +3864,7 @@ export default function App() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
                   <span>{t.dashboard.nextRank} {getRankName(masteryRank + 1)}</span>
                   <span className="glow-cyan" style={{ color: 'var(--cyan)', fontWeight: 'bold' }}>
-                    {stats.progressPercent.toFixed(1)}%
+                    <AnimatedCounter value={stats.progressPercent} decimals={1} suffix="%" />
                   </span>
                 </div>
                 <div className="mastery-progress-bar-container">
@@ -3461,10 +3893,10 @@ export default function App() {
                 <div className="stat-info">
                   <div className="stat-label">{t.dashboard.stats}</div>
                   <div className="stat-value">
-                    {stats.masteredCount} <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>/ {stats.totalCount}</span>
+                    <AnimatedCounter value={stats.masteredCount} /> <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>/ {stats.totalCount}</span>
                   </div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                    {((stats.masteredCount / stats.totalCount) * 100 || 0).toFixed(1)}% {t.dashboard.masteredOf}
+                    <AnimatedCounter value={(stats.masteredCount / stats.totalCount) * 100 || 0} decimals={1} suffix="%" /> {t.dashboard.masteredOf}
                   </div>
                 </div>
               </div>
@@ -3476,10 +3908,10 @@ export default function App() {
                 <div className="stat-info">
                   <div className="stat-label">{t.dashboard.weaponsOwned}</div>
                   <div className="stat-value">
-                    {stats.ownedCount} <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>/ {stats.totalCount}</span>
+                    <AnimatedCounter value={stats.ownedCount} /> <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>/ {stats.totalCount}</span>
                   </div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                    {t.dashboard.readyToLevel}: {stats.ownedCount - stats.masteredCount}
+                    {t.dashboard.readyToLevel}: <AnimatedCounter value={stats.ownedCount - stats.masteredCount} />
                   </div>
                 </div>
               </div>
@@ -3506,7 +3938,7 @@ export default function App() {
                 <div className="stat-info">
                   <div className="stat-label">{t.dashboard.nemesisProgress}</div>
                   <div className="stat-value">
-                    {stats.nemesisMastered} <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>/ {stats.nemesisCount}</span>
+                    <AnimatedCounter value={stats.nemesisMastered} /> <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>/ {stats.nemesisCount}</span>
                   </div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
                     {t.dashboard.nemesisSub}
@@ -3563,6 +3995,17 @@ export default function App() {
                   </div>
                   <div className="mastery-progress-bar-container" style={{ height: '12px' }}>
                     <div className="mastery-progress-bar-fill" style={{ width: `${(stats.meleeMastered / stats.meleeCount) * 100 || 0}%` }}></div>
+                  </div>
+                </div>
+
+                {/* Companions */}
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.35rem' }}>
+                    <span>{lang === 'pt' ? 'Companheiros' : lang === 'es' ? 'Compañeros' : lang === 'ja' ? 'センチネル/ペット' : 'Companions'} ({stats.companionMastered} / {stats.companionCount})</span>
+                    <span>{((stats.companionMastered / stats.companionCount) * 100 || 0).toFixed(0)}%</span>
+                  </div>
+                  <div className="mastery-progress-bar-container" style={{ height: '12px' }}>
+                    <div className="mastery-progress-bar-fill companion-progress-fill" style={{ width: `${(stats.companionMastered / stats.companionCount) * 100 || 0}%` }}></div>
                   </div>
                 </div>
 
@@ -3878,7 +4321,7 @@ export default function App() {
 
         {/* TAB 2: ARSENAL & CHECKLIST */}
         {activeTab === 'weapons' && (
-          <div>
+          <div className="tab-pane-fade">
             {/* TOOLBAR FILTERS */}
             <div className="toolbar">
               <div className="search-input-wrapper">
@@ -3980,7 +4423,7 @@ export default function App() {
               </div>
             ) : (
               <div className="weapons-grid">
-                {filteredWeapons.map(w => {
+                {filteredWeapons.map((w, idx) => {
                   const state = inventory[w.id] || inventory[w.name] || { owned: false, mastered: false };
                   const isLocked = w.masteryReq > masteryRank;
 
@@ -3993,7 +4436,8 @@ export default function App() {
                         borderColor: isLocked ? 'rgba(239, 68, 68, 0.15)' : '',
                         display: 'flex',
                         flexDirection: 'column',
-                        justifyContent: 'space-between'
+                        justifyContent: 'space-between',
+                        animationDelay: `${Math.min(idx, 20) * 0.03}s`
                       }}
                     >
                       <div>
@@ -4181,9 +4625,57 @@ export default function App() {
 
         {/* TAB: MODS CATALOG */}
         {activeTab === 'mods' && (
-          <div>
-            {/* TOOLBAR FILTERS */}
-            <div className="toolbar">
+          <div className="tab-pane-fade">
+            {/* SUB-TABS SELECTOR */}
+            <div className="sub-tabs-container" style={{ 
+              display: 'flex', 
+              gap: '1rem', 
+              marginBottom: '1.5rem', 
+              borderBottom: '1px solid rgba(255, 255, 255, 0.05)', 
+              paddingBottom: '0.5rem' 
+            }}>
+              <button 
+                onClick={() => setModsSubTab('mods')}
+                className={`sub-tab-btn ${modsSubTab === 'mods' ? 'active' : ''}`}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: modsSubTab === 'mods' ? 'var(--gold)' : 'var(--text-muted)',
+                  fontSize: '1rem',
+                  fontFamily: 'var(--font-display)',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  padding: '0.25rem 0.5rem',
+                  borderBottom: modsSubTab === 'mods' ? '2px solid var(--gold)' : '2px solid transparent',
+                  transition: 'all var(--transition-fast)'
+                }}
+              >
+                ✨ Mods
+              </button>
+              <button 
+                onClick={() => setModsSubTab('arcanes')}
+                className={`sub-tab-btn ${modsSubTab === 'arcanes' ? 'active' : ''}`}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: modsSubTab === 'arcanes' ? 'var(--gold)' : 'var(--text-muted)',
+                  fontSize: '1rem',
+                  fontFamily: 'var(--font-display)',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  padding: '0.25rem 0.5rem',
+                  borderBottom: modsSubTab === 'arcanes' ? '2px solid var(--gold)' : '2px solid transparent',
+                  transition: 'all var(--transition-fast)'
+                }}
+              >
+                🔮 {lang === 'pt' ? 'Arcanos' : 'Arcanes'}
+              </button>
+            </div>
+
+            {modsSubTab === 'mods' ? (
+              <>
+                {/* TOOLBAR FILTERS */}
+                <div className="toolbar">
               <div className="search-input-wrapper">
                 <Search className="search-icon-svg" size={18} />
                 <input 
@@ -4290,7 +4782,7 @@ export default function App() {
             ) : (
               <>
                 <div className="weapons-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))' }}>
-                {filteredMods.slice(0, visibleModsCount).map(m => {
+                {filteredMods.slice(0, visibleModsCount).map((m, idx) => {
                   const key = m.uniqueName || m.name;
                   const state = modInventory[key] || { obtained: false };
                   const rarityClass = `rarity-${(m.rarity || 'common').toLowerCase()}`;
@@ -4300,7 +4792,7 @@ export default function App() {
                       key={key} 
                       className={`mod-card ${rarityClass} ${state.obtained ? 'obtained' : ''}`}
                       onClick={() => setSelectedMod(m)}
-                      style={{ cursor: 'pointer' }}
+                      style={{ cursor: 'pointer', animationDelay: `${Math.min(idx, 20) * 0.03}s` }}
                     >
                       <div className="card-shine" />
                       <div className="mod-card-top">
@@ -4396,6 +4888,162 @@ export default function App() {
                 </div>
               )}
             </>)}
+            ) : (
+              /* ARCANES TAB CONTAINER */
+              <div>
+                {/* ARCANES TOOLBAR */}
+                <div className="toolbar" style={{ marginBottom: '1.5rem' }}>
+                  <div className="search-input-wrapper">
+                    <Search className="search-icon-svg" size={18} />
+                    <input 
+                      type="text" 
+                      placeholder={lang === 'pt' ? "Buscar arcanos..." : "Search arcanes..."}
+                      value={arcaneSearch}
+                      onChange={(e) => setArcaneSearch(e.target.value)}
+                      className="search-input"
+                    />
+                  </div>
+
+                  <select 
+                    value={arcaneFilterCategory} 
+                    onChange={(e) => setArcaneFilterCategory(e.target.value)}
+                    className="filter-select"
+                  >
+                    <option value="all">{lang === 'pt' ? "Todas as Categorias" : "All Categories"}</option>
+                    <option value="Warframe">Warframe</option>
+                    <option value="Primary">{lang === 'pt' ? "Primária" : "Primary"}</option>
+                    <option value="Secondary">{lang === 'pt' ? "Secundária" : "Secondary"}</option>
+                    <option value="Operator">Operator</option>
+                  </select>
+                </div>
+
+                {/* ARCANES GRID */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                  gap: '1.25rem'
+                }}>
+                  {fallbackArcanes
+                    .filter(a => {
+                      const matchesSearch = a.name.toLowerCase().includes(arcaneSearch.toLowerCase()) || 
+                                            a.description.toLowerCase().includes(arcaneSearch.toLowerCase());
+                      const matchesCategory = arcaneFilterCategory === 'all' || a.category === arcaneFilterCategory;
+                      return matchesSearch && matchesCategory;
+                    })
+                    .map(a => {
+                      const currentRank = arcaneInventory[a.id] || 0; // Rank 0 (not owned) to Rank 5 (maxed)
+                      
+                      // Mastery-like card design
+                      let rarityColor = a.rarity === 'Legendary' ? 'var(--gold)' : a.rarity === 'Rare' ? '#a855f7' : '#3b82f6';
+                      
+                      // Calculate required copies
+                      const copyCounts = [0, 1, 3, 6, 10, 21];
+                      const currentCopies = copyCounts[currentRank];
+
+                      const handleRankChange = (newRank) => {
+                        setArcaneInventory(prev => {
+                          const copy = { ...prev };
+                          if (newRank === 0) {
+                            delete copy[a.id];
+                          } else {
+                            copy[a.id] = newRank;
+                          }
+                          return copy;
+                        });
+                      };
+
+                      return (
+                        <div key={a.id} className="arcane-card glass-panel" style={{
+                          padding: '1.25rem',
+                          borderTop: `3px solid ${rarityColor}`,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
+                          gap: '0.75rem',
+                          position: 'relative'
+                        }}>
+                          <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <h4 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text-bright)' }}>{a.name}</h4>
+                              <span style={{ 
+                                fontSize: '0.65rem', 
+                                padding: '0.15rem 0.35rem', 
+                                borderRadius: '3px', 
+                                background: 'rgba(255,255,255,0.05)', 
+                                color: rarityColor,
+                                textTransform: 'uppercase',
+                                fontWeight: 700
+                              }}>{a.category}</span>
+                            </div>
+                            <p style={{ 
+                              fontSize: '0.75rem', 
+                              color: 'var(--text-muted)', 
+                              margin: '0.5rem 0 0 0',
+                              lineHeight: '1.3' 
+                            }}>{a.description}</p>
+                          </div>
+
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.25rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                                {lang === 'pt' ? 'Rank Atual:' : 'Current Rank:'} <strong style={{ color: currentRank === 5 ? 'var(--gold)' : 'var(--text-bright)', fontSize: '0.8rem' }}>{currentRank === 0 ? 'N/A' : `Rank ${currentRank}`}</strong>
+                              </span>
+                              <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                                {currentRank > 0 && `(${currentCopies} ${lang === 'pt' ? 'cópias' : 'copies'})`}
+                              </span>
+                            </div>
+
+                            {/* Rank selector button dots */}
+                            <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <button 
+                                onClick={() => handleRankChange(0)}
+                                style={{
+                                  background: currentRank === 0 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255,255,255,0.02)',
+                                  border: `1px solid ${currentRank === 0 ? '#ef4444' : 'rgba(255,255,255,0.05)'}`,
+                                  color: currentRank === 0 ? '#ef4444' : 'var(--text-muted)',
+                                  fontSize: '0.65rem',
+                                  padding: '0.2rem 0.4rem',
+                                  borderRadius: '3px',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                {lang === 'pt' ? 'Remover' : 'Remove'}
+                              </button>
+                              
+                              <div style={{ display: 'flex', gap: '0.2rem' }}>
+                                {[1, 2, 3, 4, 5].map(rank => (
+                                  <button
+                                    key={rank}
+                                    onClick={() => handleRankChange(rank)}
+                                    style={{
+                                      width: '22px',
+                                      height: '22px',
+                                      borderRadius: '50%',
+                                      border: 'none',
+                                      background: rank <= currentRank ? rarityColor : 'rgba(255,255,255,0.05)',
+                                      color: rank <= currentRank ? '#000' : 'var(--text-muted)',
+                                      fontSize: '0.7rem',
+                                      fontWeight: 'bold',
+                                      cursor: 'pointer',
+                                      transition: 'all var(--transition-fast)',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center'
+                                    }}
+                                    title={`Rank ${rank}`}
+                                  >
+                                    {rank}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -4502,7 +5150,7 @@ export default function App() {
           };
 
           return (
-            <div className="planner-panel glass-panel">
+            <div className="planner-panel glass-panel tab-pane-fade">
               <div className="planner-intro">
                 <h2 className="glow-cyan" style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>
                   {t.planner.title}
@@ -4532,7 +5180,7 @@ export default function App() {
 
         {/* TAB: STAR CHART (MAPA ESTELAR) */}
         {activeTab === 'starchart' && (
-          <div className="starchart-tab-container">
+          <div className="starchart-tab-container tab-pane-fade">
             <div className="planner-intro" style={{ marginBottom: '2.5rem' }}>
               <h2 className="glow-cyan" style={{ fontSize: '1.8rem', marginBottom: '0.5rem', textShadow: '0 0 10px rgba(0, 240, 255, 0.4)' }}>
                 {t.starchart.title}
@@ -4727,6 +5375,7 @@ export default function App() {
                         const isCompleted = currentNodes === planet.maxNodes;
                         const percent = Math.round((currentNodes / planet.maxNodes) * 100 || 0);
                         const isSelected = selectedPlanetId === planet.id;
+                        const bobDelay = `${((coords.x + coords.y) % 5) * -1.2}s`;
 
                         return (
                           <button
@@ -4737,16 +5386,18 @@ export default function App() {
                             onClick={() => setSelectedPlanetId(planet.id)}
                             title={`${lang === 'pt' ? planet.namePt : planet.nameEn} (${currentNodes}/${planet.maxNodes})`}
                           >
-                            <div 
-                              className="planet-sphere" 
-                              style={{ 
-                                boxShadow: isSelected 
-                                  ? `0 0 20px ${starChartMode === 'steelpath' ? '#ff3b30' : 'var(--cyan)'}`
-                                  : isCompleted
-                                    ? `0 0 10px ${starChartMode === 'steelpath' ? '#d4af37' : '#007aff'}`
-                                    : 'none'
-                              }}
-                            />
+                            <div className="planet-wrapper-bobbing" style={{ animationDelay: bobDelay }}>
+                              <div 
+                                className="planet-sphere" 
+                                style={{ 
+                                  boxShadow: isSelected 
+                                    ? `0 0 20px ${starChartMode === 'steelpath' ? '#ff3b30' : 'var(--cyan)'}`
+                                    : isCompleted
+                                      ? `0 0 10px ${starChartMode === 'steelpath' ? '#d4af37' : '#007aff'}`
+                                      : 'none'
+                                }}
+                              />
+                            </div>
                             <span className="planet-label">
                               {lang === 'pt' ? planet.namePt : planet.nameEn}
                               <span className="planet-badge">{percent}%</span>
@@ -4916,7 +5567,7 @@ export default function App() {
 
         {/* TAB: JUNCTIONS (TERMINAIS) */}
         {activeTab === 'junctions' && (
-          <div className="junctions-tab-container">
+          <div className="junctions-tab-container tab-pane-fade">
             <div className="planner-intro" style={{ marginBottom: '2.5rem' }}>
               <h2 className="glow-gold" style={{ fontSize: '1.8rem', marginBottom: '0.5rem', textShadow: '0 0 10px rgba(212, 175, 55, 0.4)' }}>
                 {t.junctions.title}
@@ -5002,7 +5653,7 @@ export default function App() {
 
         {/* TAB 4: SINDICATOS */}
         {activeTab === 'syndicates' && (
-          <div>
+          <div className="tab-pane-fade">
             <div className="planner-intro" style={{ marginBottom: '2rem' }}>
               <h2 className="glow-cyan" style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>
                 {t.syndicates.title}
@@ -5274,7 +5925,7 @@ export default function App() {
 
         {/* TAB: NEMESIS (Liches & Irmãs) */}
         {activeTab === 'nemesis' && (
-          <div className="nemesis-panel glass-panel">
+          <div className="nemesis-panel glass-panel tab-pane-fade">
             <h2 className="glow-cyan" style={{ fontSize: '1.5rem', marginBottom: '1rem', textTransform: 'uppercase' }}>
               {t.nemesis.title}
             </h2>
@@ -5334,37 +5985,99 @@ export default function App() {
                 let factionColor = w.nemesisType === 'Kuva' ? '#ef4444' : w.nemesisType === 'Tenet' ? '#38bdf8' : '#4ade80';
                 
                 return (
-                  <div key={w.id} className="nemesis-card glass-panel" style={{ padding: '1rem', borderTop: `2px solid ${factionColor}` }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-                      <h4 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-bright)' }}>{w.name}</h4>
+                  <div key={w.id} className="nemesis-card glass-panel" style={{ 
+                    padding: '1rem', 
+                    borderTop: `3px solid ${factionColor}`,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    gap: '0.75rem',
+                    position: 'relative',
+                    overflow: 'hidden'
+                  }}>
+                    {/* Background faint faction label */}
+                    <div style={{
+                      position: 'absolute',
+                      right: '8px',
+                      top: '6px',
+                      fontSize: '0.6rem',
+                      fontFamily: 'var(--font-display)',
+                      fontWeight: 700,
+                      color: factionColor,
+                      opacity: 0.15,
+                      pointerEvents: 'none',
+                      textTransform: 'uppercase',
+                      letterSpacing: '1px'
+                    }}>
+                      {w.nemesisType}
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                      {/* Image Thumbnail */}
+                      <div className="nemesis-weapon-thumb-container" style={{
+                        width: '52px',
+                        height: '52px',
+                        borderRadius: '6px',
+                        background: 'rgba(0, 0, 0, 0.25)',
+                        border: '1px solid rgba(255, 255, 255, 0.05)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        overflow: 'hidden',
+                        cursor: 'pointer'
+                      }} onClick={() => setSelectedWeapon(w)}>
+                        <img 
+                          src={getWeaponImage(w)} 
+                          alt={w.name} 
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'contain',
+                            transition: 'transform var(--transition-fast)'
+                          }}
+                          className="nemesis-thumb-img"
+                          onError={(e) => { e.target.style.display = 'none'; }}
+                        />
+                      </div>
+
+                      {/* Title & Faction info */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <h4 style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-bright)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{w.name}</h4>
+                        <span style={{ fontSize: '0.65rem', color: factionColor, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                          {w.nemesisType === 'Kuva' ? '🩸 Kuva' : w.nemesisType === 'Tenet' ? '💼 Tenet' : '🦠 Coda'}
+                        </span>
+                      </div>
+
+                      {/* Checklist buttons */}
                       <div style={{ display: 'flex', gap: '0.25rem' }}>
                         <button 
                           onClick={() => handleToggleOwned(w.name, w.id)}
                           className={`action-btn ${wState.owned ? 'owned-active' : ''}`}
-                          style={{ padding: '0.2rem 0.4rem', fontSize: '0.75rem' }}
-                          title="Obtido"
+                          style={{ padding: '0.25rem 0.45rem', fontSize: '0.75rem' }}
+                          title={t.general.obtained || 'Obtido'}
                         >
                           📦
                         </button>
                         <button 
                           onClick={() => handleToggleMastered(w.name, w.id)}
                           className={`action-btn ${wState.mastered ? 'mastered-active' : ''}`}
-                          style={{ padding: '0.2rem 0.4rem', fontSize: '0.75rem' }}
-                          title="Dominado"
+                          style={{ padding: '0.25rem 0.45rem', fontSize: '0.75rem' }}
+                          title={t.general.mastered || 'Dominado'}
                         >
                           ✔
                         </button>
                       </div>
                     </div>
-                    
-                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+
+                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.15rem' }}>
                       <div style={{ flex: 1 }}>
-                        <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.15rem' }}>{t.nemesis.element}</label>
+                        <label style={{ fontSize: '0.65rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.15rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{t.nemesis.element}</label>
                         <select 
                           value={wState.element || ''}
                           onChange={(e) => handleNemesisUpdate(w.name, w.id, { element: e.target.value })}
                           className="mr-select"
-                          style={{ width: '100%', fontSize: '0.8rem', padding: '0.25rem' }}
+                          style={{ width: '100%', fontSize: '0.78rem', padding: '0.25rem', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)', borderRadius: '4px', color: 'var(--text-bright)' }}
                         >
                           <option value="">{t.nemesis.select}</option>
                           <option value="Toxina">{t.nemesis.toxin}</option>
@@ -5376,8 +6089,8 @@ export default function App() {
                           <option value="Radiação">{t.nemesis.radiation}</option>
                         </select>
                       </div>
-                      <div style={{ width: '70px' }}>
-                        <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.15rem' }}>{t.nemesis.bonus}</label>
+                      <div style={{ width: '75px' }}>
+                        <label style={{ fontSize: '0.65rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.15rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{t.nemesis.bonus}</label>
                         <input 
                           type="number" 
                           min="25" 
@@ -5392,37 +6105,40 @@ export default function App() {
                             padding: '0.25rem',
                             borderRadius: '4px',
                             textAlign: 'center',
-                            fontSize: '0.8rem'
+                            fontSize: '0.78rem'
                           }}
                         />
                       </div>
                     </div>
                     
-                    <div className="stat-bar-container" style={{ height: '4px', marginTop: '0.5rem', background: 'rgba(0,0,0,0.5)' }}>
-                      <div className="stat-bar-fill" style={{ 
-                        width: `${((Math.min(60, Math.max(25, wState.bonus || 25)) - 25) / 35) * 100}%`,
-                        background: wState.bonus >= 60 ? 'var(--gold)' : factionColor 
-                      }}></div>
-                    </div>
-                    
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
-                      {wState.bonus >= 60 ? (
-                        <span style={{ fontSize: '0.65rem', color: 'var(--gold)' }}>{t.nemesis.maxed}</span>
-                      ) : (
-                        <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-                          {t.nemesis.nextFusion}: <strong style={{ color: 'var(--text-bright)' }}>{Math.min(60, (wState.bonus || 25) * 1.1).toFixed(1)}%</strong>
-                        </span>
-                      )}
+                    <div>
+                      <div className="stat-bar-container" style={{ height: '4px', background: 'rgba(0,0,0,0.5)', borderRadius: '2px', overflow: 'hidden' }}>
+                        <div className="stat-bar-fill" style={{ 
+                          width: `${((Math.min(60, Math.max(25, wState.bonus || 25)) - 25) / 35) * 100}%`,
+                          background: wState.bonus >= 60 ? 'var(--gold)' : factionColor,
+                          height: '100%'
+                        }}></div>
+                      </div>
                       
-                      <a 
-                        href={w.wikiaUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="btn-secondary"
-                        style={{ padding: '0.2rem 0.4rem', fontSize: '0.65rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.2rem' }}
-                      >
-                        <ExternalLink size={10} /> Wiki
-                      </a>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.4rem' }}>
+                        {wState.bonus >= 60 ? (
+                          <span style={{ fontSize: '0.65rem', color: 'var(--gold)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>⭐ {t.nemesis.maxed}</span>
+                        ) : (
+                          <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                            {t.nemesis.nextFusion}: <strong style={{ color: 'var(--text-bright)' }}>{Math.min(60, (wState.bonus || 25) * 1.1).toFixed(1)}%</strong>
+                          </span>
+                        )}
+                        
+                        <a 
+                          href={w.wikiaUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="btn-secondary"
+                          style={{ padding: '0.15rem 0.35rem', fontSize: '0.65rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.2rem', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)' }}
+                        >
+                          <ExternalLink size={10} /> Wiki
+                        </a>
+                      </div>
                     </div>
                   </div>
                 );
@@ -5433,7 +6149,7 @@ export default function App() {
 
         {/* TAB 5: BACKUP & INTEGRATION */}
         {activeTab === 'sync' && (
-          <div className="sync-panel glass-panel">
+          <div className="sync-panel glass-panel tab-pane-fade">
             <h2 className="glow-cyan" style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>
               {t.sync.title}
             </h2>
@@ -5446,13 +6162,45 @@ export default function App() {
               {/* Export Box */}
               <div className="sync-box">
                 <h3>{lang === 'pt' ? 'Exportar Progresso' : lang === 'es' ? 'Exportar Progreso' : lang === 'ja' ? '進行状況のエクスポート' : 'Export Progress'}</h3>
-                <p>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
                   {t.sync.exportDesc}
                 </p>
+
+                {/* Visual Backup Summary Stats */}
+                <div className="backup-stats-container" style={{
+                  background: 'rgba(0, 0, 0, 0.25)',
+                  border: '1px solid rgba(255, 255, 255, 0.05)',
+                  borderRadius: '8px',
+                  padding: '0.75rem 1rem',
+                  fontSize: '0.8rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.45rem',
+                  marginTop: '0.5rem',
+                  marginBottom: '1rem'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>{lang === 'pt' ? 'Conta ativa:' : 'Active Account:'}</span>
+                    <strong style={{ color: 'var(--text-bright)' }}>{username || 'Tenno'}</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>{lang === 'pt' ? 'Plataforma:' : 'Platform:'}</span>
+                    <strong style={{ color: 'var(--cyan)' }}>{platform}</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>{lang === 'pt' ? 'Itens Arsenal:' : 'Arsenal Items:'}</span>
+                    <strong style={{ color: 'var(--text-bright)' }}>{stats.ownedCount} / {stats.totalCount}</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>{lang === 'pt' ? 'Coleção de Mods:' : 'Mods Collection:'}</span>
+                    <strong style={{ color: 'var(--text-bright)' }}>{modStats.obtainedCount} / {modStats.totalCount}</strong>
+                  </div>
+                </div>
+
                 <button 
                   onClick={handleExportData}
                   className="btn-primary"
-                  style={{ marginTop: 'auto' }}
+                  style={{ marginTop: 'auto', width: '100%' }}
                 >
                   <Download size={16} /> {t.sync.exportBtn}
                 </button>
@@ -5461,7 +6209,7 @@ export default function App() {
               {/* Import Box */}
               <div className="sync-box">
                 <h3>{lang === 'pt' ? 'Importar Backup ou JSON do AlecaFrame' : lang === 'es' ? 'Importar Copia de Seguridad o JSON de AlecaFrame' : lang === 'ja' ? 'バックアップまたはAlecaFrameのJSONをインポート' : 'Import Backup or AlecaFrame JSON'}</h3>
-                <p>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
                   {t.sync.importDesc}
                 </p>
 
@@ -5490,12 +6238,42 @@ export default function App() {
                   <span>{t.sync.separatorOr}</span>
                 </div>
                 
-                <form onSubmit={handleImportData} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <form onSubmit={handleImportData} style={{ display: 'flex', flexDirection: 'column' }}>
+                  <div className="terminal-header" style={{
+                    background: 'rgba(10, 15, 30, 0.85)',
+                    border: '1px solid rgba(56, 189, 248, 0.2)',
+                    borderBottom: 'none',
+                    borderTopLeftRadius: '6px',
+                    borderTopRightRadius: '6px',
+                    padding: '0.4rem 0.75rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    fontFamily: 'monospace',
+                    fontSize: '0.65rem',
+                    color: '#38bdf8',
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px'
+                  }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <span className="console-dot" style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#38bdf8', display: 'inline-block' }} />
+                      ORBITER_TERMINAL://IMPORT_JSON
+                    </span>
+                    <span style={{ opacity: 0.5 }}>SECURE_LINE</span>
+                  </div>
+
                   <textarea
                     placeholder={t.sync.importPlaceholder}
                     value={importJson}
                     onChange={(e) => setImportJson(e.target.value)}
                     className="json-textarea"
+                    style={{
+                      borderTopLeftRadius: 0,
+                      borderTopRightRadius: 0,
+                      borderTop: 'none',
+                      marginTop: 0,
+                      marginBottom: '0.75rem'
+                    }}
                     required
                   ></textarea>
 
@@ -5522,11 +6300,128 @@ export default function App() {
 
       </main>
 
+      {/* IMPORT PREVIEW MODAL */}
+      {importPreview && (
+        <div className="modal-overlay" onClick={() => setImportPreview(null)}>
+          <div className="modal-content glass-panel" style={{ maxWidth: '460px', padding: '2rem' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <h3 className="glow-cyan" style={{ fontSize: '1.25rem', textTransform: 'uppercase', fontFamily: 'var(--font-display)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Check size={20} style={{ color: 'var(--cyan)' }} /> {lang === 'pt' ? 'Confirmar Importação' : 'Confirm Import'}
+              </h3>
+              <button 
+                onClick={() => setImportPreview(null)}
+                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', outline: 'none' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1.25rem', lineHeight: '1.4' }}>
+              {lang === 'pt' 
+                ? 'Lemos os dados do JSON com sucesso! Revise o resumo das informações que serão gravadas:' 
+                : 'JSON data read successfully! Review the summary of the information to be written:'}
+            </p>
+
+            <div className="backup-stats-container" style={{
+              background: 'rgba(0, 0, 0, 0.35)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: '8px',
+              padding: '1rem',
+              fontSize: '0.85rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.65rem',
+              marginBottom: '1.5rem'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--text-muted)' }}>{lang === 'pt' ? 'Usuário:' : 'Username:'}</span>
+                <strong style={{ color: 'var(--text-bright)' }}>{importPreview.username || 'Tenno'}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--text-muted)' }}>{lang === 'pt' ? 'Plataforma:' : 'Platform:'}</span>
+                <strong style={{ color: 'var(--cyan)' }}>{importPreview.platform || 'PC'}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--text-muted)' }}>{lang === 'pt' ? 'Rank de Maestria:' : 'Mastery Rank:'}</span>
+                <strong style={{ color: 'var(--text-bright)' }}>MR {importPreview.masteryRank}</strong>
+              </div>
+              
+              <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.06)', margin: '0.25rem 0', paddingTop: '0.5rem' }} />
+
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--text-muted)' }}>{lang === 'pt' ? 'Itens de Arsenal Detectados:' : 'Arsenal Items Detected:'}</span>
+                <strong style={{ color: 'var(--color-owned)' }}>+{importPreview.weaponsCount}</strong>
+              </div>
+              
+              {importPreview.modsCount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>{lang === 'pt' ? 'Mods Detectados:' : 'Mods Detected:'}</span>
+                  <strong style={{ color: 'var(--purple)' }}>+{importPreview.modsCount}</strong>
+                </div>
+              )}
+              {importPreview.syndicatesCount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>{lang === 'pt' ? 'Sindicatos Detectados:' : 'Syndicates Detected:'}</span>
+                  <strong style={{ color: '#f59e0b' }}>+{importPreview.syndicatesCount}</strong>
+                </div>
+              )}
+              {importPreview.arcanesCount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>{lang === 'pt' ? 'Arcanos Detectados:' : 'Arcanes Detected:'}</span>
+                  <strong style={{ color: 'var(--gold)' }}>+{importPreview.arcanesCount}</strong>
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button 
+                className="btn-secondary" 
+                style={{ flex: 1, padding: '0.65rem' }}
+                onClick={() => setImportPreview(null)}
+              >
+                {lang === 'pt' ? 'Cancelar' : 'Cancel'}
+              </button>
+              <button 
+                className="btn-primary" 
+                style={{ flex: 1, padding: '0.65rem', background: 'linear-gradient(135deg, var(--cyan) 0%, #0284c7 100%)' }}
+                onClick={() => {
+                  const data = importPreview.rawData;
+                  if (data.inventory) setInventory(data.inventory);
+                  if (data.username) setUsername(data.username);
+                  if (data.platform) setPlatform(data.platform);
+                  if (data.masteryRank) setMasteryRank(Number(data.masteryRank) || 1);
+                  if (data.syndicates) setSyndicates(data.syndicates);
+                  if (data.modInventory) setModInventory(data.modInventory);
+                  if (data.starChartNormal) setStarChartNormal(data.starChartNormal);
+                  if (data.starChartSteelPath) setStarChartSteelPath(data.starChartSteelPath);
+                  if (data.starChartJunctions) setStarChartJunctions(data.starChartJunctions);
+                  if (data.arcanes) setArcaneInventory(data.arcanes);
+                  if (data.warframeShards) setWarframeShards(data.warframeShards);
+                  
+                  const countLabel = importPreview.type === 'smart' 
+                    ? (lang === 'pt' ? `Importação inteligente concluída! Identificados ${importPreview.weaponsCount} itens.` : `Smart import completed! Identified ${importPreview.weaponsCount} items.`)
+                    : (lang === 'pt' ? 'Backup completo restaurado com sucesso!' : 'Complete backup restored successfully!');
+
+                  setSyncStatus({ 
+                    type: 'success', 
+                    message: countLabel
+                  });
+                  setImportJson('');
+                  setImportPreview(null);
+                }}
+              >
+                {lang === 'pt' ? 'Confirmar' : 'Confirm'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* WEAPON DETAIL MODAL */}
       {selectedWeapon && (
-        <div className="modal-overlay" onClick={() => setSelectedWeapon(null)}>
+        <div className="modal-overlay" onClick={() => { setSelectedWeapon(null); setActiveShardEditor(null); }}>
           <div className="modal-content glass-panel" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close-btn" onClick={() => setSelectedWeapon(null)}>
+            <button className="modal-close-btn" onClick={() => { setSelectedWeapon(null); setActiveShardEditor(null); }}>
               <X size={24} />
             </button>
 
@@ -5620,6 +6515,211 @@ export default function App() {
                         </div>
                       </div>
                     </div>
+
+                    {/* ARCHON SHARD SOCKETS SECTION */}
+                    <h4 className="modal-section-title" style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>🎴 {lang === 'pt' ? 'Fragmentos de Arconte' : 'Archon Shards'}</span>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 'normal', color: 'var(--text-muted)' }}>
+                        {lang === 'pt' ? 'Clique em um slot para equipar' : 'Click a slot to socket'}
+                      </span>
+                    </h4>
+
+                    <div className="archon-shards-row" style={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      gap: '1rem',
+                      margin: '1rem 0 1.5rem 0',
+                      padding: '0.75rem',
+                      background: 'rgba(0, 0, 0, 0.2)',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(255, 255, 255, 0.05)'
+                    }}>
+                      {[0, 1, 2, 3, 4].map(slotIndex => {
+                        const currentShardsList = warframeShards[selectedWeapon.id || selectedWeapon.name] || [null, null, null, null, null];
+                        const shard = currentShardsList[slotIndex]; // { type, tauforged }
+                        
+                        let shardColor = 'rgba(255,255,255,0.05)';
+                        let shadowGlow = 'none';
+                        let borderGlow = 'rgba(255,255,255,0.1)';
+                        
+                        if (shard && shard.type) {
+                          if (shard.type === 'Crimson') { shardColor = '#ef4444'; shadowGlow = '0 0 12px #ef4444'; borderGlow = '#fca5a5'; }
+                          else if (shard.type === 'Amber') { shardColor = '#f59e0b'; shadowGlow = '0 0 12px #f59e0b'; borderGlow = '#fde047'; }
+                          else if (shard.type === 'Azure') { shardColor = '#3b82f6'; shadowGlow = '0 0 12px #3b82f6'; borderGlow = '#93c5fd'; }
+                          else if (shard.type === 'Violet') { shardColor = '#8b5cf6'; shadowGlow = '0 0 12px #8b5cf6'; borderGlow = '#c084fc'; }
+                          else if (shard.type === 'Topaz') { shardColor = '#ea580c'; shadowGlow = '0 0 12px #ea580c'; borderGlow = '#ff9d5c'; }
+                          else if (shard.type === 'Emerald') { shardColor = '#10b981'; shadowGlow = '0 0 12px #10b981'; borderGlow = '#6ee7b7'; }
+                        }
+
+                        const isTauforged = shard && shard.tauforged;
+                        const animationClass = isTauforged ? 'tauforged-pulse' : '';
+
+                        return (
+                          <div 
+                            key={slotIndex}
+                            className={`archon-shard-slot ${animationClass}`}
+                            onClick={() => setActiveShardEditor({ slotIndex })}
+                            style={{
+                              width: '45px',
+                              height: '45px',
+                              background: shard ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.02)',
+                              border: shard ? `2px solid ${borderGlow}` : `1px dashed rgba(255,255,255,0.15)`,
+                              borderRadius: '50%',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              position: 'relative',
+                              boxShadow: shadowGlow,
+                              transition: 'all 0.3s ease'
+                            }}
+                            title={shard ? `${isTauforged ? 'Tauforged ' : ''}${shard.type} Shard` : `Empty Slot ${slotIndex + 1}`}
+                          >
+                            {shard && shard.type ? (
+                              <div style={{
+                                width: '18px',
+                                height: '18px',
+                                background: shardColor,
+                                clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
+                                boxShadow: isTauforged ? `0 0 8px ${shardColor}` : 'none'
+                              }} />
+                            ) : (
+                              <span style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.15)' }}>+</span>
+                            )}
+                            
+                            {isTauforged && (
+                              <span style={{
+                                position: 'absolute',
+                                top: '-3px',
+                                right: '-3px',
+                                width: '8px',
+                                height: '8px',
+                                borderRadius: '50%',
+                                background: 'var(--gold)',
+                                boxShadow: '0 0 6px var(--gold)'
+                              }} title="Tauforged" />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {activeShardEditor !== null && (() => {
+                      const slotIndex = activeShardEditor.slotIndex;
+                      const currentShardsList = warframeShards[selectedWeapon.id || selectedWeapon.name] || [null, null, null, null, null];
+                      const shard = currentShardsList[slotIndex];
+
+                      const updateShard = (type, tauforged) => {
+                        const newList = [...currentShardsList];
+                        if (type === null) {
+                          newList[slotIndex] = null;
+                        } else {
+                          newList[slotIndex] = { type, tauforged };
+                        }
+                        setWarframeShards(prev => ({
+                          ...prev,
+                          [selectedWeapon.id || selectedWeapon.name]: newList
+                        }));
+                      };
+
+                      return (
+                        <div className="shard-editor-panel glass-panel" style={{
+                          padding: '1rem',
+                          margin: '0.5rem 0 1rem 0',
+                          background: 'rgba(255, 255, 255, 0.02)',
+                          border: '1px solid rgba(255, 255, 255, 0.08)',
+                          borderRadius: '8px',
+                          animation: 'tabFadeIn 0.25s ease-out'
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-bright)' }}>
+                              {lang === 'pt' ? `Editar Slot ${slotIndex + 1}` : `Edit Slot ${slotIndex + 1}`}
+                            </span>
+                            <button 
+                              onClick={() => setActiveShardEditor(null)}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: 'var(--text-muted)',
+                                cursor: 'pointer',
+                                fontSize: '0.8rem'
+                              }}
+                            >
+                              ✕
+                            </button>
+                          </div>
+
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            <div>
+                              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
+                                {lang === 'pt' ? 'Tipo de Fragmento' : 'Shard Type'}
+                              </div>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+                                {[
+                                  { type: null, label: lang === 'pt' ? 'Nenhum' : 'None', color: 'rgba(255,255,255,0.05)' },
+                                  { type: 'Crimson', label: 'Crimson', color: '#ef4444' },
+                                  { type: 'Amber', label: 'Amber', color: '#f59e0b' },
+                                  { type: 'Azure', label: 'Azure', color: '#3b82f6' },
+                                  { type: 'Violet', label: 'Violet', color: '#8b5cf6' },
+                                  { type: 'Topaz', label: 'Topaz', color: '#ea580c' },
+                                  { type: 'Emerald', label: 'Emerald', color: '#10b981' }
+                                ].map(opt => {
+                                  const isSelected = (!shard && opt.type === null) || (shard && shard.type === opt.type);
+                                  return (
+                                    <button
+                                      key={opt.type || 'none'}
+                                      onClick={() => updateShard(opt.type, shard ? shard.tauforged : false)}
+                                      style={{
+                                        padding: '0.25rem 0.6rem',
+                                        fontSize: '0.7rem',
+                                        borderRadius: '4px',
+                                        border: isSelected ? `1px solid ${opt.color}` : '1px solid transparent',
+                                        background: isSelected ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.01)',
+                                        color: isSelected ? 'var(--text-bright)' : 'var(--text-muted)',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.3rem',
+                                        transition: 'all 0.2s'
+                                      }}
+                                    >
+                                      {opt.type !== null && (
+                                        <span style={{ 
+                                          width: '8px', 
+                                          height: '8px', 
+                                          borderRadius: '50%', 
+                                          background: opt.color 
+                                        }} />
+                                      )}
+                                      {opt.label}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+
+                            {shard && shard.type && (
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.25rem' }}>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--text-bright)' }}>
+                                  ⭐ {lang === 'pt' ? 'Fragmento Forjado em Tau (Tauforged)' : 'Tauforged Shard'}
+                                </span>
+                                <input 
+                                  type="checkbox" 
+                                  checked={shard.tauforged || false}
+                                  onChange={(e) => updateShard(shard.type, e.target.checked)}
+                                  style={{
+                                    width: '16px',
+                                    height: '16px',
+                                    cursor: 'pointer',
+                                    accentColor: 'var(--gold)'
+                                  }}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })()}
 
                     {/* ABILITIES SECTION */}
                     {selectedWeapon.abilities && selectedWeapon.abilities.length > 0 && (
@@ -6342,6 +7442,7 @@ export default function App() {
                   { label: lang === 'pt' ? 'Secundárias' : 'Secondary', val: stats.secondaryMastered, total: stats.secondaryCount },
                   { label: lang === 'pt' ? 'C. a C.' : 'Melee', val: stats.meleeMastered, total: stats.meleeCount },
                   { label: 'Warframes', val: stats.warframeMastered, total: stats.warframeCount },
+                  { label: lang === 'pt' ? 'Companheiros' : 'Companions', val: stats.companionMastered, total: stats.companionCount },
                   { label: lang === 'pt' ? 'Nêmesis' : 'Nemesis', val: stats.nemesisMastered, total: stats.nemesisCount }
                 ].map(bar => {
                   const pct = Math.min(100, (bar.val / bar.total) * 100 || 0);
@@ -6381,6 +7482,57 @@ export default function App() {
                 <X size={14} />
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* DYNAMIC GLYPH AVATAR SELECTION MODAL */}
+      {showAvatarModal && (
+        <div className="share-card-modal" onClick={(e) => { if (e.target === e.currentTarget) setShowAvatarModal(false); }}>
+          <div className="share-card-container" style={{ maxWidth: '420px', padding: '1.75rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <h3 className="glow-purple" style={{ fontSize: '1.2rem', textTransform: 'uppercase', fontFamily: 'var(--font-display)' }}>
+                {t.general?.avatarModalTitle || 'Escolha seu Glyph'}
+              </h3>
+              <button 
+                onClick={() => setShowAvatarModal(false)}
+                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', outline: 'none' }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+            
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+              {lang === 'pt' ? 'Personalize o ícone de exibição do seu Perfil Tenno.' : 'Personalize your Tenno Profile display badge.'}
+            </p>
+
+            <div className="glyph-modal-grid">
+              {Object.entries(GLYPHS).map(([key, data]) => {
+                const isActive = userAvatar === key;
+                return (
+                  <div 
+                    key={key} 
+                    className={`glyph-select-card ${isActive ? 'active' : ''}`}
+                    onClick={() => {
+                      setUserAvatar(key);
+                    }}
+                  >
+                    <div className="glyph-select-card-svg" style={{ color: data.color }}>
+                      {data.svg}
+                    </div>
+                    <span className="glyph-select-card-name">{data.name}</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            <button 
+              className="btn-primary" 
+              style={{ width: '100%', display: 'block', padding: '0.6rem' }}
+              onClick={() => setShowAvatarModal(false)}
+            >
+              {t.general?.avatarBtnClose || 'Salvar'}
+            </button>
           </div>
         </div>
       )}
