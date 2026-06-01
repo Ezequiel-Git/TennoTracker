@@ -3136,7 +3136,7 @@ export default function App() {
       } else if (filterStatus === 'owned') {
         matchesStatus = state.owned && !state.mastered;
       } else if (filterStatus === 'notOwned') {
-        matchesStatus = !state.owned;
+        matchesStatus = !state.owned && !state.mastered;
       }
       
       let matchesVault = true;
