@@ -2128,9 +2128,9 @@ export default function App() {
   
   // Search & Filters State
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState('All');
-  const [filterStatus, setFilterStatus] = useState('All');
-  const [filterVault, setFilterVault] = useState('All');
+  const [filterType, setFilterType] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterVault, setFilterVault] = useState('all');
   const [sortBy, setSortBy] = useState(() => localStorage.getItem('wf_sort_by') || 'name-asc');
   const [hideLockedByMR, setHideLockedByMR] = useState(() => localStorage.getItem('wf_hide_locked') === 'true');
 
@@ -3121,21 +3121,23 @@ export default function App() {
         (w.source || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
         localizedSource.toLowerCase().includes(searchQuery.toLowerCase());
         
-      const matchesType = filterType === 'All' || w.type === filterType;
+      const matchesType = filterType === 'all' || w.type === filterType;
       
       let matchesStatus = true;
       if (filterStatus === 'mastered') {
         matchesStatus = state.mastered;
+      } else if (filterStatus === 'notMastered') {
+        matchesStatus = !state.mastered;
       } else if (filterStatus === 'owned') {
         matchesStatus = state.owned && !state.mastered;
-      } else if (filterStatus === 'unowned') {
+      } else if (filterStatus === 'notOwned') {
         matchesStatus = !state.owned;
       }
       
       let matchesVault = true;
       if (filterVault === 'vaulted') {
         matchesVault = w.vaulted;
-      } else if (filterVault === 'active') {
+      } else if (filterVault === 'obtainable') {
         matchesVault = !w.vaulted;
       }
       
