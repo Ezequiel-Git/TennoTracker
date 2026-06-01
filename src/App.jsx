@@ -2131,7 +2131,12 @@ export default function App() {
   const [filterType, setFilterType] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterVault, setFilterVault] = useState('all');
-  const [sortBy, setSortBy] = useState(() => localStorage.getItem('wf_sort_by') || 'name-asc');
+  const [sortBy, setSortBy] = useState(() => {
+    const saved = localStorage.getItem('wf_sort_by');
+    if (saved === 'status-unmastered') return 'unmastered-first';
+    if (saved === 'status-mastered') return 'mastered-first';
+    return saved || 'name-asc';
+  });
   const [hideLockedByMR, setHideLockedByMR] = useState(() => localStorage.getItem('wf_hide_locked') === 'true');
 
   // Save search & filters preferences
