@@ -3168,16 +3168,22 @@ export default function App() {
         if (a.masteryReq !== b.masteryReq) return b.masteryReq - a.masteryReq;
         return (a.name || '').localeCompare(b.name || '');
       }
-      if (sortBy === 'status-mastered') {
+      if (sortBy === 'mastered-first') {
         const stateA = (inventory[a.id]?.mastered || inventory[a.name]?.mastered) ? 1 : 0;
         const stateB = (inventory[b.id]?.mastered || inventory[b.name]?.mastered) ? 1 : 0;
         if (stateA !== stateB) return stateB - stateA;
         return (a.name || '').localeCompare(b.name || '');
       }
-      if (sortBy === 'status-unmastered') {
+      if (sortBy === 'unmastered-first') {
         const stateA = (inventory[a.id]?.mastered || inventory[a.name]?.mastered) ? 1 : 0;
         const stateB = (inventory[b.id]?.mastered || inventory[b.name]?.mastered) ? 1 : 0;
         if (stateA !== stateB) return stateA - stateB;
+        return (a.name || '').localeCompare(b.name || '');
+      }
+      if (sortBy === 'vaulted-first') {
+        const valA = a.vaulted ? 1 : 0;
+        const valB = b.vaulted ? 1 : 0;
+        if (valA !== valB) return valB - valA;
         return (a.name || '').localeCompare(b.name || '');
       }
       return 0;
