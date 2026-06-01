@@ -32,7 +32,7 @@ import {
   Map as MapIcon,
   Milestone
 } from 'lucide-react';
-import { fallbackWeapons, getMasteryPointsRequired, getRankName, fallbackCompanions } from './weaponsData';
+import { fallbackWeapons, fallbackCompanions, getMasteryPointsRequired, getRankName } from './weaponsData';
 import { weaponSourceMap } from './weaponSourceMap';
 import { fallbackMods, fallbackArcanes } from './modsData';
 
@@ -2128,9 +2128,9 @@ export default function App() {
   
   // Search & Filters State
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState('All');
-  const [filterStatus, setFilterStatus] = useState('All');
-  const [filterVault, setFilterVault] = useState('All');
+  const [filterType, setFilterType] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterVault, setFilterVault] = useState('all');
   const [sortBy, setSortBy] = useState(() => localStorage.getItem('wf_sort_by') || 'name-asc');
   const [hideLockedByMR, setHideLockedByMR] = useState(() => localStorage.getItem('wf_hide_locked') === 'true');
 
@@ -2146,6 +2146,7 @@ export default function App() {
   // Modal State
   const [selectedWeapon, setSelectedWeapon] = useState(null);
   const [activeShardEditor, setActiveShardEditor] = useState(null);
+
 
   // Import / Export State
   const [importJson, setImportJson] = useState('');
@@ -2418,7 +2419,13 @@ export default function App() {
             .map(item => mapItemData(item, true, lang));
         }
         
-        const merged = [...parsedWeapons, ...parsedWarframes, ...fallbackCompanions];
+        const fallbackOthers = fallbackWeapons.filter(w => 
+          w.type === 'Archwing' || 
+          w.type === 'Arch-Gun' || 
+          w.type === 'Arch-Melee' || 
+          w.type === 'Amp'
+        );
+        const merged = [...parsedWeapons, ...parsedWarframes, ...fallbackCompanions, ...fallbackOthers];
         // Sort by name
         merged.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
         setWeapons(merged);
@@ -3000,6 +3007,7 @@ export default function App() {
   // Helper to get Image URL (with fallback to CDN)
   const getWeaponImage = (w) => {
     if (!w) return '';
+    if (w.wikiaThumbnail) return w.wikiaThumbnail;
     if (w.image) return w.image;
     if (w.imageName) return `https://cdn.warframestat.us/img/${w.imageName}`;
     if (w.name) {
@@ -3032,7 +3040,7 @@ export default function App() {
       if (o.owned) ownedCount++;
       if (o.mastered) {
         masteredCount++;
-        if (e.type === 'Warframe' || e.type === 'Companion') {
+        if (e.type === 'Warframe' || e.type === 'Companion' || e.type === 'Archwing') {
           weaponMasteryPoints += 6000;
         } else if (e.isNemesis) {
           weaponMasteryPoints += 4000;
@@ -3119,21 +3127,23 @@ export default function App() {
         (w.source || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
         localizedSource.toLowerCase().includes(searchQuery.toLowerCase());
         
-      const matchesType = filterType === 'All' || w.type === filterType;
+      const matchesType = filterType === 'all' || w.type === filterType;
       
       let matchesStatus = true;
       if (filterStatus === 'mastered') {
         matchesStatus = state.mastered;
+      } else if (filterStatus === 'notMastered') {
+        matchesStatus = !state.mastered;
       } else if (filterStatus === 'owned') {
         matchesStatus = state.owned && !state.mastered;
-      } else if (filterStatus === 'unowned') {
+      } else if (filterStatus === 'notOwned') {
         matchesStatus = !state.owned;
       }
       
       let matchesVault = true;
       if (filterVault === 'vaulted') {
         matchesVault = w.vaulted;
-      } else if (filterVault === 'active') {
+      } else if (filterVault === 'obtainable') {
         matchesVault = !w.vaulted;
       }
       
@@ -3164,13 +3174,13 @@ export default function App() {
         if (a.masteryReq !== b.masteryReq) return b.masteryReq - a.masteryReq;
         return (a.name || '').localeCompare(b.name || '');
       }
-      if (sortBy === 'status-mastered') {
+      if (sortBy === 'mastered-first') {
         const stateA = (inventory[a.id]?.mastered || inventory[a.name]?.mastered) ? 1 : 0;
         const stateB = (inventory[b.id]?.mastered || inventory[b.name]?.mastered) ? 1 : 0;
         if (stateA !== stateB) return stateB - stateA;
         return (a.name || '').localeCompare(b.name || '');
       }
-      if (sortBy === 'status-unmastered') {
+      if (sortBy === 'unmastered-first') {
         const stateA = (inventory[a.id]?.mastered || inventory[a.name]?.mastered) ? 1 : 0;
         const stateB = (inventory[b.id]?.mastered || inventory[b.name]?.mastered) ? 1 : 0;
         if (stateA !== stateB) return stateA - stateB;
@@ -3311,7 +3321,7 @@ export default function App() {
       starChartSteelPath,
       starChartJunctions,
       arcanes: arcaneInventory,
-      warframeShards: warframeShards
+      warframeShards
     };
     const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(exportObject, null, 2))}`;
     const downloadAnchor = document.createElement('a');
@@ -3493,6 +3503,8 @@ export default function App() {
     };
     reader.readAsText(file);
   };
+
+
 
   return (
     <>
@@ -4673,7 +4685,7 @@ export default function App() {
             </div>
 
             {modsSubTab === 'mods' ? (
-              <>
+              <div style={{ display: 'contents' }}>
                 {/* TOOLBAR FILTERS */}
                 <div className="toolbar">
               <div className="search-input-wrapper">
@@ -4780,7 +4792,7 @@ export default function App() {
                 <p style={{ marginTop: '0.5rem' }}>{lang === 'pt' ? "Tente ajustar seus critérios de busca ou filtros." : "Try adjusting your search criteria or filters."}</p>
               </div>
             ) : (
-              <>
+              <div style={{ display: 'contents' }}>
                 <div className="weapons-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))' }}>
                 {filteredMods.slice(0, visibleModsCount).map((m, idx) => {
                   const key = m.uniqueName || m.name;
@@ -4887,11 +4899,10 @@ export default function App() {
                   </button>
                 </div>
               )}
-            </>
+            </div>
           )}
-        </>
+        </div>
       ) : (
-              /* ARCANES TAB CONTAINER */
               <div>
                 {/* ARCANES TOOLBAR */}
                 <div className="toolbar" style={{ marginBottom: '1.5rem' }}>
@@ -4964,25 +4975,36 @@ export default function App() {
                           gap: '0.75rem',
                           position: 'relative'
                         }}>
-                          <div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <h4 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text-bright)' }}>{a.name}</h4>
-                              <span style={{ 
-                                fontSize: '0.65rem', 
-                                padding: '0.15rem 0.35rem', 
-                                borderRadius: '3px', 
-                                background: 'rgba(255,255,255,0.05)', 
-                                color: rarityColor,
-                                textTransform: 'uppercase',
-                                fontWeight: 700
-                              }}>{a.category}</span>
+                          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                            {a.imageName && (
+                              <img 
+                                src={`https://cdn.warframestat.us/img/${a.imageName}`} 
+                                alt={a.name}
+                                style={{ width: '48px', height: '48px', objectFit: 'contain', background: 'rgba(255,255,255,0.02)', borderRadius: '6px', padding: '2px', border: '1px solid rgba(255,255,255,0.06)' }}
+                                onError={(e) => { e.target.style.display = 'none'; }}
+                              />
+                            )}
+                            <div style={{ flex: 1 }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
+                                <h4 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text-bright)' }}>{a.name}</h4>
+                                <span style={{ 
+                                  fontSize: '0.65rem', 
+                                  padding: '0.15rem 0.35rem', 
+                                  borderRadius: '3px', 
+                                  background: 'rgba(255,255,255,0.05)', 
+                                  color: rarityColor,
+                                  textTransform: 'uppercase',
+                                  fontWeight: 700,
+                                  whiteSpace: 'nowrap'
+                                }}>{a.category}</span>
+                              </div>
+                              <p style={{ 
+                                fontSize: '0.75rem', 
+                                color: 'var(--text-muted)', 
+                                margin: '0.5rem 0 0 0',
+                                lineHeight: '1.3' 
+                              }}>{a.description}</p>
                             </div>
-                            <p style={{ 
-                              fontSize: '0.75rem', 
-                              color: 'var(--text-muted)', 
-                              margin: '0.5rem 0 0 0',
-                              lineHeight: '1.3' 
-                            }}>{a.description}</p>
                           </div>
 
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.25rem' }}>
@@ -5009,35 +5031,31 @@ export default function App() {
                                   cursor: 'pointer'
                                 }}
                               >
-                                {lang === 'pt' ? 'Remover' : 'Remove'}
+                                {lang === 'pt' ? 'Nenhum' : 'None'}
                               </button>
-                              
-                              <div style={{ display: 'flex', gap: '0.2rem' }}>
-                                {[1, 2, 3, 4, 5].map(rank => (
-                                  <button
-                                    key={rank}
-                                    onClick={() => handleRankChange(rank)}
-                                    style={{
-                                      width: '22px',
-                                      height: '22px',
-                                      borderRadius: '50%',
-                                      border: 'none',
-                                      background: rank <= currentRank ? rarityColor : 'rgba(255,255,255,0.05)',
-                                      color: rank <= currentRank ? '#000' : 'var(--text-muted)',
-                                      fontSize: '0.7rem',
-                                      fontWeight: 'bold',
-                                      cursor: 'pointer',
-                                      transition: 'all var(--transition-fast)',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center'
-                                    }}
-                                    title={`Rank ${rank}`}
-                                  >
-                                    {rank}
-                                  </button>
-                                ))}
-                              </div>
+                              {[1, 2, 3, 4, 5].map((rank) => (
+                                <button
+                                  key={rank}
+                                  onClick={() => handleRankChange(rank)}
+                                  style={{
+                                    width: '24px',
+                                    height: '24px',
+                                    borderRadius: '50%',
+                                    background: currentRank >= rank ? 'var(--accent)' : 'rgba(255,255,255,0.02)',
+                                    border: `1px solid ${currentRank >= rank ? 'var(--accent-light)' : 'rgba(255,255,255,0.08)'}`,
+                                    color: currentRank >= rank ? '#000' : 'var(--text-muted)',
+                                    fontSize: '0.7rem',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    transition: 'all 0.15s ease'
+                                  }}
+                                >
+                                  {rank}
+                                </button>
+                              ))}
                             </div>
                           </div>
                         </div>
@@ -5108,7 +5126,7 @@ export default function App() {
                           </div>
 
                           <span className="suggestion-action-badge">
-                            +{w.type === 'Warframe' ? '6000' : '3000'} XP
+                            +{w.type === 'Warframe' || w.type === 'Companion' || w.type === 'Archwing' ? '6000' : '3000'} XP
                           </span>
 
                           <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -6398,6 +6416,7 @@ export default function App() {
                   if (data.starChartSteelPath) setStarChartSteelPath(data.starChartSteelPath);
                   if (data.starChartJunctions) setStarChartJunctions(data.starChartJunctions);
                   if (data.arcanes) setArcaneInventory(data.arcanes);
+                  else if (data.arcaneInventory) setArcaneInventory(data.arcaneInventory);
                   if (data.warframeShards) setWarframeShards(data.warframeShards);
                   
                   const countLabel = importPreview.type === 'smart' 
@@ -6537,13 +6556,12 @@ export default function App() {
                       border: '1px solid rgba(255, 255, 255, 0.05)'
                     }}>
                       {[0, 1, 2, 3, 4].map(slotIndex => {
-                        const currentShardsList = warframeShards[selectedWeapon.id || selectedWeapon.name] || [null, null, null, null, null];
-                        const shard = currentShardsList[slotIndex]; // { type, tauforged }
-                        
+                        const wfKey = selectedWeapon.id || selectedWeapon.name;
+                        const currentShardsList = warframeShards[wfKey] || [null, null, null, null, null];
+                        const shard = currentShardsList[slotIndex];
                         let shardColor = 'rgba(255,255,255,0.05)';
                         let shadowGlow = 'none';
                         let borderGlow = 'rgba(255,255,255,0.1)';
-                        
                         if (shard && shard.type) {
                           if (shard.type === 'Crimson') { shardColor = '#ef4444'; shadowGlow = '0 0 12px #ef4444'; borderGlow = '#fca5a5'; }
                           else if (shard.type === 'Amber') { shardColor = '#f59e0b'; shadowGlow = '0 0 12px #f59e0b'; borderGlow = '#fde047'; }
@@ -6608,22 +6626,14 @@ export default function App() {
 
                     {activeShardEditor !== null && (() => {
                       const slotIndex = activeShardEditor.slotIndex;
-                      const currentShardsList = warframeShards[selectedWeapon.id || selectedWeapon.name] || [null, null, null, null, null];
+                      const wfKey = selectedWeapon.id || selectedWeapon.name;
+                      const currentShardsList = warframeShards[wfKey] || [null, null, null, null, null];
                       const shard = currentShardsList[slotIndex];
-
                       const updateShard = (type, tauforged) => {
                         const newList = [...currentShardsList];
-                        if (type === null) {
-                          newList[slotIndex] = null;
-                        } else {
-                          newList[slotIndex] = { type, tauforged };
-                        }
-                        setWarframeShards(prev => ({
-                          ...prev,
-                          [selectedWeapon.id || selectedWeapon.name]: newList
-                        }));
+                        newList[slotIndex] = type === null ? null : { type, tauforged };
+                        setWarframeShards(prev => ({ ...prev, [wfKey]: newList }));
                       };
-
                       return (
                         <div className="shard-editor-panel glass-panel" style={{
                           padding: '1rem',
