@@ -4887,8 +4887,10 @@ export default function App() {
                   </button>
                 </div>
               )}
-            </>)}
-            ) : (
+            </>
+          )}
+        </>
+      ) : (
               /* ARCANES TAB CONTAINER */
               <div>
                 {/* ARCANES TOOLBAR */}
