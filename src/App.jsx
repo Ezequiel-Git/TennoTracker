@@ -2211,33 +2211,6 @@ export default function App() {
   const [selectedWeapon, setSelectedWeapon] = useState(null);
   const [activeShardEditor, setActiveShardEditor] = useState(null);
 
-  // Arcane Inventory State
-  const [arcaneInventory, setArcaneInventory] = useState(() => {
-    try {
-      const stored = localStorage.getItem('tennoTracker_arcanes');
-      return stored ? JSON.parse(stored) : {};
-    } catch { return {}; }
-  });
-
-  useEffect(() => {
-    localStorage.setItem('tennoTracker_arcanes', JSON.stringify(arcaneInventory));
-  }, [arcaneInventory]);
-
-  const [warframeShards, setWarframeShards] = useState(() => {
-    try {
-      const stored = localStorage.getItem('tennoTracker_warframe_shards');
-      return stored ? JSON.parse(stored) : {};
-    } catch { return {}; }
-  });
-
-  useEffect(() => {
-    localStorage.setItem('tennoTracker_warframe_shards', JSON.stringify(warframeShards));
-  }, [warframeShards]);
-
-  // Mods Sub-Tab State
-  const [modsSubTab, setModsSubTab] = useState('mods');
-  const [arcaneSearch, setArcaneSearch] = useState('');
-  const [arcaneFilterCategory, setArcaneFilterCategory] = useState('all');
 
   // Import / Export State
   const [importJson, setImportJson] = useState('');
@@ -2275,6 +2248,31 @@ export default function App() {
   const [modFilterType, setModFilterType] = useState('all');
   const [modFilterStatus, setModFilterStatus] = useState('all');
   const [modSortBy, setModSortBy] = useState('name-asc');
+  
+  const [modsSubTab, setModsSubTab] = useState('mods'); // 'mods' or 'arcanes'
+  const [arcaneInventory, setArcaneInventory] = useState(() => {
+    try {
+      const stored = localStorage.getItem('tennoTracker_arcanes');
+      return stored ? JSON.parse(stored) : {};
+    } catch { return {}; }
+  });
+  const [arcaneSearch, setArcaneSearch] = useState('');
+  const [arcaneFilterCategory, setArcaneFilterCategory] = useState('all');
+
+  useEffect(() => {
+    localStorage.setItem('tennoTracker_arcanes', JSON.stringify(arcaneInventory));
+  }, [arcaneInventory]);
+  
+  const [warframeShards, setWarframeShards] = useState(() => {
+    try {
+      const stored = localStorage.getItem('tennoTracker_warframe_shards');
+      return stored ? JSON.parse(stored) : {};
+    } catch { return {}; }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('tennoTracker_warframe_shards', JSON.stringify(warframeShards));
+  }, [warframeShards]);
   
   // Performance: Lazy Loading Mods Grid
   const [visibleModsCount, setVisibleModsCount] = useState(80);
@@ -2898,6 +2896,7 @@ export default function App() {
       `🗡️ **Secundárias:** ${stats.secondaryMastered}/${stats.secondaryCount}`,
       `🔪 **Corpo a Corpo:** ${stats.meleeMastered}/${stats.meleeCount}`,
       `🎭 **Warframes:** ${stats.warframeMastered}/${stats.warframeCount}`,
+      `🐾 **Companheiros:** ${stats.companionMastered}/${stats.companionCount}`,
       `👹 **Nêmesis:** ${stats.nemesisMastered}/${stats.nemesisCount}`,
       ``,
       `*Gerado pelo Warframe Mastery Tracker*`
@@ -3093,6 +3092,8 @@ export default function App() {
     let meleeMastered = 0;
     let warframeCount = 0;
     let warframeMastered = 0;
+    let companionCount = 0;
+    let companionMastered = 0;
     let nemesisCount = 0;
     let nemesisMastered = 0;
     let weaponMasteryPoints = 0;
@@ -3127,6 +3128,9 @@ export default function App() {
       } else if (e.type === 'Warframe') {
         warframeCount++;
         if (o.mastered) warframeMastered++;
+      } else if (e.type === 'Companion') {
+        companionCount++;
+        if (o.mastered) companionMastered++;
       }
     });
 
@@ -3173,6 +3177,8 @@ export default function App() {
       meleeMastered,
       warframeCount,
       warframeMastered,
+      companionCount,
+      companionMastered,
       nemesisCount,
       nemesisMastered
     };
@@ -3249,12 +3255,6 @@ export default function App() {
         const scoreA = stateA.mastered ? 2 : (stateA.owned ? 1 : 0);
         const scoreB = stateB.mastered ? 2 : (stateB.owned ? 1 : 0);
         if (scoreA !== scoreB) return scoreA - scoreB;
-        return (a.name || '').localeCompare(b.name || '');
-      }
-      if (sortBy === 'vaulted-first') {
-        const valA = a.vaulted ? 1 : 0;
-        const valB = b.vaulted ? 1 : 0;
-        if (valA !== valB) return valB - valA;
         return (a.name || '').localeCompare(b.name || '');
       }
       return 0;
@@ -3425,6 +3425,7 @@ export default function App() {
         const weaponsCount = Object.keys(parsed.inventory).length;
         const modsCount = parsed.modInventory ? Object.keys(parsed.modInventory).length : 0;
         const syndicatesCount = parsed.syndicates ? Object.keys(parsed.syndicates).length : 0;
+        const arcanesCount = parsed.arcanes ? Object.keys(parsed.arcanes).length : 0;
         
         return {
           type: 'direct',
@@ -3434,6 +3435,7 @@ export default function App() {
           weaponsCount,
           modsCount,
           syndicatesCount,
+          arcanesCount,
           rawData: parsed
         };
       } else {
@@ -4080,6 +4082,17 @@ export default function App() {
                   </div>
                 </div>
 
+                {/* Companions */}
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.35rem' }}>
+                    <span>{lang === 'pt' ? 'Companheiros' : lang === 'es' ? 'Compañeros' : lang === 'ja' ? 'センチネル/ペット' : 'Companions'} ({stats.companionMastered} / {stats.companionCount})</span>
+                    <span>{((stats.companionMastered / stats.companionCount) * 100 || 0).toFixed(0)}%</span>
+                  </div>
+                  <div className="mastery-progress-bar-container" style={{ height: '12px' }}>
+                    <div className="mastery-progress-bar-fill companion-progress-fill" style={{ width: `${(stats.companionMastered / stats.companionCount) * 100 || 0}%` }}></div>
+                  </div>
+                </div>
+
                 {/* Star Chart Nodes */}
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.35rem' }}>
@@ -4697,39 +4710,56 @@ export default function App() {
         {/* TAB: MODS CATALOG */}
         {activeTab === 'mods' && (
           <div className="tab-pane-fade">
-            {/* SUB-TAB BAR */}
-            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '0.75rem' }}>
-              <button
+            {/* SUB-TABS SELECTOR */}
+            <div className="sub-tabs-container" style={{ 
+              display: 'flex', 
+              gap: '1rem', 
+              marginBottom: '1.5rem', 
+              borderBottom: '1px solid rgba(255, 255, 255, 0.05)', 
+              paddingBottom: '0.5rem' 
+            }}>
+              <button 
                 onClick={() => setModsSubTab('mods')}
+                className={`sub-tab-btn ${modsSubTab === 'mods' ? 'active' : ''}`}
                 style={{
-                  padding: '0.65rem 1.75rem', fontSize: '0.95rem', borderRadius: '8px', cursor: 'pointer',
-                  background: modsSubTab === 'mods' ? 'var(--cyan)' : 'rgba(255,255,255,0.04)',
-                  color: modsSubTab === 'mods' ? '#000' : 'var(--text-muted)',
-                  border: modsSubTab === 'mods' ? 'none' : '1px solid rgba(255,255,255,0.08)',
-                  fontWeight: 700,
-                  transition: 'all 0.22s ease'
+                  background: 'none',
+                  border: 'none',
+                  color: modsSubTab === 'mods' ? 'var(--gold)' : 'var(--text-muted)',
+                  fontSize: '1rem',
+                  fontFamily: 'var(--font-display)',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  padding: '0.25rem 0.5rem',
+                  borderBottom: modsSubTab === 'mods' ? '2px solid var(--gold)' : '2px solid transparent',
+                  transition: 'all var(--transition-fast)'
                 }}
               >
-                ✨ {lang === 'pt' ? 'Mods' : 'Mods'}
+                ✨ Mods
               </button>
-              <button
+              <button 
                 onClick={() => setModsSubTab('arcanes')}
+                className={`sub-tab-btn ${modsSubTab === 'arcanes' ? 'active' : ''}`}
                 style={{
-                  padding: '0.65rem 1.75rem', fontSize: '0.95rem', borderRadius: '8px', cursor: 'pointer',
-                  background: modsSubTab === 'arcanes' ? 'var(--gold)' : 'rgba(255,255,255,0.04)',
-                  color: modsSubTab === 'arcanes' ? '#000' : 'var(--text-muted)',
-                  border: modsSubTab === 'arcanes' ? 'none' : '1px solid rgba(255,255,255,0.08)',
-                  fontWeight: 700,
-                  transition: 'all 0.22s ease'
+                  background: 'none',
+                  border: 'none',
+                  color: modsSubTab === 'arcanes' ? 'var(--gold)' : 'var(--text-muted)',
+                  fontSize: '1rem',
+                  fontFamily: 'var(--font-display)',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  padding: '0.25rem 0.5rem',
+                  borderBottom: modsSubTab === 'arcanes' ? '2px solid var(--gold)' : '2px solid transparent',
+                  transition: 'all var(--transition-fast)'
                 }}
               >
                 🔮 {lang === 'pt' ? 'Arcanos' : 'Arcanes'}
               </button>
             </div>
 
-            {modsSubTab === 'mods' && (<div style={{ display: 'contents' }}>
-            {/* TOOLBAR FILTERS */}
-            <div className="toolbar">
+            {modsSubTab === 'mods' ? (
+              <div style={{ display: 'contents' }}>
+                {/* TOOLBAR FILTERS */}
+                <div className="toolbar">
               <div className="search-input-wrapper">
                 <Search className="search-icon-svg" size={18} />
                 <input 
@@ -4941,58 +4971,81 @@ export default function App() {
                   </button>
                 </div>
               )}
-            </div>)}
-            </div>)}
-
-            {modsSubTab === 'arcanes' && (
+            </div>
+          )}
+        </div>
+      ) : (
               <div>
+                {/* ARCANES TOOLBAR */}
                 <div className="toolbar" style={{ marginBottom: '1.5rem' }}>
                   <div className="search-input-wrapper">
                     <Search className="search-icon-svg" size={18} />
-                    <input
-                      type="text"
-                      placeholder={lang === 'pt' ? 'Buscar arcanos...' : 'Search arcanes...'}
+                    <input 
+                      type="text" 
+                      placeholder={lang === 'pt' ? "Buscar arcanos..." : "Search arcanes..."}
                       value={arcaneSearch}
                       onChange={(e) => setArcaneSearch(e.target.value)}
                       className="search-input"
                     />
                   </div>
-                  <select
-                    value={arcaneFilterCategory}
+
+                  <select 
+                    value={arcaneFilterCategory} 
                     onChange={(e) => setArcaneFilterCategory(e.target.value)}
                     className="filter-select"
                   >
-                    <option value="all">{lang === 'pt' ? 'Todas as Categorias' : 'All Categories'}</option>
+                    <option value="all">{lang === 'pt' ? "Todas as Categorias" : "All Categories"}</option>
                     <option value="Warframe">Warframe</option>
-                    <option value="Primary">{lang === 'pt' ? 'Primária' : 'Primary'}</option>
-                    <option value="Secondary">{lang === 'pt' ? 'Secundária' : 'Secondary'}</option>
+                    <option value="Primary">{lang === 'pt' ? "Primária" : "Primary"}</option>
+                    <option value="Secondary">{lang === 'pt' ? "Secundária" : "Secondary"}</option>
                     <option value="Operator">Operator</option>
                   </select>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.25rem' }}>
+                {/* ARCANES GRID */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                  gap: '1.25rem'
+                }}>
                   {fallbackArcanes
                     .filter(a => {
-                      const matchesSearch = a.name.toLowerCase().includes(arcaneSearch.toLowerCase()) || a.description.toLowerCase().includes(arcaneSearch.toLowerCase());
+                      const matchesSearch = a.name.toLowerCase().includes(arcaneSearch.toLowerCase()) || 
+                                            a.description.toLowerCase().includes(arcaneSearch.toLowerCase());
                       const matchesCategory = arcaneFilterCategory === 'all' || a.category === arcaneFilterCategory;
                       return matchesSearch && matchesCategory;
                     })
                     .map(a => {
-                      const currentRank = arcaneInventory[a.id] || 0;
-                      const rarityColor = a.rarity === 'Legendary' ? 'var(--gold)' : a.rarity === 'Rare' ? '#a855f7' : '#3b82f6';
+                      const currentRank = arcaneInventory[a.id] || 0; // Rank 0 (not owned) to Rank 5 (maxed)
+                      
+                      // Mastery-like card design
+                      let rarityColor = a.rarity === 'Legendary' ? 'var(--gold)' : a.rarity === 'Rare' ? '#a855f7' : '#3b82f6';
+                      
+                      // Calculate required copies
                       const copyCounts = [0, 1, 3, 6, 10, 21];
                       const currentCopies = copyCounts[currentRank];
+
                       const handleRankChange = (newRank) => {
                         setArcaneInventory(prev => {
                           const copy = { ...prev };
-                          if (newRank === 0) { delete copy[a.id]; } else { copy[a.id] = newRank; }
+                          if (newRank === 0) {
+                            delete copy[a.id];
+                          } else {
+                            copy[a.id] = newRank;
+                          }
                           return copy;
                         });
                       };
+
                       return (
-                        <div key={a.id} className="glass-panel" style={{
-                          padding: '1.25rem', borderTop: `3px solid ${rarityColor}`,
-                          display: 'flex', flexDirection: 'column', gap: '0.75rem'
+                        <div key={a.id} className="arcane-card glass-panel" style={{
+                          padding: '1.25rem',
+                          borderTop: `3px solid ${rarityColor}`,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
+                          gap: '0.75rem',
+                          position: 'relative'
                         }}>
                           <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
                             {a.imageName && (
@@ -5006,58 +5059,75 @@ export default function App() {
                             <div style={{ flex: 1 }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
                                 <h4 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text-bright)' }}>{a.name}</h4>
-                                <span style={{ fontSize: '0.65rem', padding: '0.15rem 0.35rem', borderRadius: '3px', background: 'rgba(255,255,255,0.05)', color: rarityColor, textTransform: 'uppercase', fontWeight: 700, whiteSpace: 'nowrap' }}>{a.category}</span>
+                                <span style={{ 
+                                  fontSize: '0.65rem', 
+                                  padding: '0.15rem 0.35rem', 
+                                  borderRadius: '3px', 
+                                  background: 'rgba(255,255,255,0.05)', 
+                                  color: rarityColor,
+                                  textTransform: 'uppercase',
+                                  fontWeight: 700,
+                                  whiteSpace: 'nowrap'
+                                }}>{a.category}</span>
                               </div>
-                              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '0.5rem 0 0 0', lineHeight: '1.3' }}>{a.description}</p>
+                              <p style={{ 
+                                fontSize: '0.75rem', 
+                                color: 'var(--text-muted)', 
+                                margin: '0.5rem 0 0 0',
+                                lineHeight: '1.3' 
+                              }}>{a.description}</p>
                             </div>
                           </div>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.25rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                               <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                                {lang === 'pt' ? 'Rank:' : 'Rank:'} <strong style={{ color: currentRank === 5 ? 'var(--gold)' : 'var(--text-bright)' }}>{currentRank === 0 ? 'N/A' : `Rank ${currentRank}`}</strong>
+                                {lang === 'pt' ? 'Rank Atual:' : 'Current Rank:'} <strong style={{ color: currentRank === 5 ? 'var(--gold)' : 'var(--text-bright)', fontSize: '0.8rem' }}>{currentRank === 0 ? 'N/A' : `Rank ${currentRank}`}</strong>
                               </span>
-                              <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{currentRank > 0 && `(${currentCopies} ${lang === 'pt' ? 'cópias' : 'copies'})`}</span>
+                              <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                                {currentRank > 0 && `(${currentCopies} ${lang === 'pt' ? 'cópias' : 'copies'})`}
+                              </span>
                             </div>
-                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.25rem' }}>
+
+                            {/* Rank selector button dots */}
+                            <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center', justifyContent: 'space-between' }}>
                               <button 
-                                onClick={() => handleRankChange(0)} 
-                                style={{ 
-                                  background: currentRank === 0 ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.02)', 
-                                  border: `1px solid ${currentRank === 0 ? '#ef4444' : 'rgba(255,255,255,0.05)'}`, 
-                                  color: currentRank === 0 ? '#ef4444' : 'var(--text-muted)', 
-                                  fontSize: '0.78rem', 
-                                  padding: '0.45rem 1rem', 
-                                  borderRadius: '6px', 
-                                  cursor: 'pointer',
-                                  fontWeight: 600,
-                                  transition: 'all 0.2s ease'
+                                onClick={() => handleRankChange(0)}
+                                style={{
+                                  background: currentRank === 0 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255,255,255,0.02)',
+                                  border: `1px solid ${currentRank === 0 ? '#ef4444' : 'rgba(255,255,255,0.05)'}`,
+                                  color: currentRank === 0 ? '#ef4444' : 'var(--text-muted)',
+                                  fontSize: '0.65rem',
+                                  padding: '0.2rem 0.4rem',
+                                  borderRadius: '3px',
+                                  cursor: 'pointer'
                                 }}
                               >
-                                {lang === 'pt' ? 'Remover' : 'Remove'}
+                                {lang === 'pt' ? 'Nenhum' : 'None'}
                               </button>
-                              <div style={{ display: 'flex', gap: '0.35rem' }}>
-                                {[1,2,3,4,5].map(rank => (
-                                  <button 
-                                    key={rank} 
-                                    onClick={() => handleRankChange(rank)} 
-                                    style={{ 
-                                      width: '32px', 
-                                      height: '32px', 
-                                      borderRadius: '50%', 
-                                      border: 'none', 
-                                      background: rank <= currentRank ? rarityColor : 'rgba(255,255,255,0.05)', 
-                                      color: rank <= currentRank ? '#000' : 'var(--text-muted)', 
-                                      fontSize: '0.88rem', 
-                                      fontWeight: 'bold', 
-                                      cursor: 'pointer',
-                                      transition: 'all 0.18s ease'
-                                    }} 
-                                    title={`Rank ${rank}`}
-                                  >
-                                    {rank}
-                                  </button>
-                                ))}
-                              </div>
+                              {[1, 2, 3, 4, 5].map((rank) => (
+                                <button
+                                  key={rank}
+                                  onClick={() => handleRankChange(rank)}
+                                  style={{
+                                    width: '24px',
+                                    height: '24px',
+                                    borderRadius: '50%',
+                                    background: currentRank >= rank ? 'var(--accent)' : 'rgba(255,255,255,0.02)',
+                                    border: `1px solid ${currentRank >= rank ? 'var(--accent-light)' : 'rgba(255,255,255,0.08)'}`,
+                                    color: currentRank >= rank ? '#000' : 'var(--text-muted)',
+                                    fontSize: '0.7rem',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    transition: 'all 0.15s ease'
+                                  }}
+                                >
+                                  {rank}
+                                </button>
+                              ))}
                             </div>
                           </div>
                         </div>
@@ -6614,6 +6684,12 @@ export default function App() {
                   <strong style={{ color: '#f59e0b' }}>+{importPreview.syndicatesCount}</strong>
                 </div>
               )}
+              {importPreview.arcanesCount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>{lang === 'pt' ? 'Arcanos Detectados:' : 'Arcanes Detected:'}</span>
+                  <strong style={{ color: 'var(--gold)' }}>+{importPreview.arcanesCount}</strong>
+                </div>
+              )}
             </div>
 
             <div style={{ display: 'flex', gap: '0.75rem' }}>
@@ -6769,7 +6845,7 @@ export default function App() {
                       </span>
                     </h4>
 
-                    <div style={{
+                    <div className="archon-shards-row" style={{
                       display: 'flex',
                       justifyContent: 'center',
                       gap: '1rem',
@@ -6794,26 +6870,35 @@ export default function App() {
                           else if (shard.type === 'Topaz') { shardColor = '#ea580c'; shadowGlow = '0 0 12px #ea580c'; borderGlow = '#ff9d5c'; }
                           else if (shard.type === 'Emerald') { shardColor = '#10b981'; shadowGlow = '0 0 12px #10b981'; borderGlow = '#6ee7b7'; }
                         }
+
                         const isTauforged = shard && shard.tauforged;
+                        const animationClass = isTauforged ? 'tauforged-pulse' : '';
+
                         return (
-                          <div
+                          <div 
                             key={slotIndex}
+                            className={`archon-shard-slot ${animationClass}`}
                             onClick={() => setActiveShardEditor({ slotIndex })}
                             style={{
-                              width: '45px', height: '45px',
+                              width: '45px',
+                              height: '45px',
                               background: shard ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.02)',
-                              border: shard ? `2px solid ${borderGlow}` : '1px dashed rgba(255,255,255,0.15)',
-                              borderRadius: '50%', cursor: 'pointer',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              position: 'relative', boxShadow: shadowGlow,
-                              transition: 'all 0.3s ease',
-                              animation: isTauforged ? 'tauforgedPulse 2s infinite ease-in-out' : 'none'
+                              border: shard ? `2px solid ${borderGlow}` : `1px dashed rgba(255,255,255,0.15)`,
+                              borderRadius: '50%',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              position: 'relative',
+                              boxShadow: shadowGlow,
+                              transition: 'all 0.3s ease'
                             }}
                             title={shard ? `${isTauforged ? 'Tauforged ' : ''}${shard.type} Shard` : `Empty Slot ${slotIndex + 1}`}
                           >
                             {shard && shard.type ? (
                               <div style={{
-                                width: '18px', height: '18px',
+                                width: '18px',
+                                height: '18px',
                                 background: shardColor,
                                 clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
                                 boxShadow: isTauforged ? `0 0 8px ${shardColor}` : 'none'
@@ -6821,12 +6906,18 @@ export default function App() {
                             ) : (
                               <span style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.15)' }}>+</span>
                             )}
+                            
                             {isTauforged && (
                               <span style={{
-                                position: 'absolute', top: '-3px', right: '-3px',
-                                width: '8px', height: '8px', borderRadius: '50%',
-                                background: 'var(--gold)', boxShadow: '0 0 6px var(--gold)'
-                              }} />
+                                position: 'absolute',
+                                top: '-3px',
+                                right: '-3px',
+                                width: '8px',
+                                height: '8px',
+                                borderRadius: '50%',
+                                background: 'var(--gold)',
+                                boxShadow: '0 0 6px var(--gold)'
+                              }} title="Tauforged" />
                             )}
                           </div>
                         );
@@ -6844,60 +6935,100 @@ export default function App() {
                         setWarframeShards(prev => ({ ...prev, [wfKey]: newList }));
                       };
                       return (
-                        <div style={{
-                          padding: '1rem', margin: '0.5rem 0 1rem 0',
-                          background: 'rgba(255,255,255,0.02)',
-                          border: '1px solid rgba(255,255,255,0.08)',
-                          borderRadius: '8px'
+                        <div className="shard-editor-panel glass-panel" style={{
+                          padding: '1rem',
+                          margin: '0.5rem 0 1rem 0',
+                          background: 'rgba(255, 255, 255, 0.02)',
+                          border: '1px solid rgba(255, 255, 255, 0.08)',
+                          borderRadius: '8px',
+                          animation: 'tabFadeIn 0.25s ease-out'
                         }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
                             <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-bright)' }}>
                               {lang === 'pt' ? `Editar Slot ${slotIndex + 1}` : `Edit Slot ${slotIndex + 1}`}
                             </span>
-                            <button onClick={() => setActiveShardEditor(null)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>✕</button>
+                            <button 
+                              onClick={() => setActiveShardEditor(null)}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: 'var(--text-muted)',
+                                cursor: 'pointer',
+                                fontSize: '0.8rem'
+                              }}
+                            >
+                              ✕
+                            </button>
                           </div>
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.5rem' }}>
-                            {[
-                              { type: null, label: lang === 'pt' ? 'Nenhum' : 'None', color: 'rgba(255,255,255,0.05)' },
-                              { type: 'Crimson', label: 'Crimson', color: '#ef4444' },
-                              { type: 'Amber', label: 'Amber', color: '#f59e0b' },
-                              { type: 'Azure', label: 'Azure', color: '#3b82f6' },
-                              { type: 'Violet', label: 'Violet', color: '#8b5cf6' },
-                              { type: 'Topaz', label: 'Topaz', color: '#ea580c' },
-                              { type: 'Emerald', label: 'Emerald', color: '#10b981' }
-                            ].map(opt => {
-                              const isSelected = (!shard && opt.type === null) || (shard && shard.type === opt.type);
-                              return (
-                                <button
-                                  key={opt.type || 'none'}
-                                  onClick={() => updateShard(opt.type, shard ? shard.tauforged : false)}
-                                  style={{
-                                    padding: '0.25rem 0.6rem', fontSize: '0.7rem', borderRadius: '4px',
-                                    border: isSelected ? `1px solid ${opt.color}` : '1px solid transparent',
-                                    background: isSelected ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.01)',
-                                    color: isSelected ? 'var(--text-bright)' : 'var(--text-muted)',
-                                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem'
-                                  }}
-                                >
-                                  {opt.type && <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: opt.color, display: 'inline-block' }} />}
-                                  {opt.label}
-                                </button>
-                              );
-                            })}
-                          </div>
-                          {shard && shard.type && (
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.25rem' }}>
-                              <span style={{ fontSize: '0.75rem', color: 'var(--text-bright)' }}>
-                                ⭐ {lang === 'pt' ? 'Tauforged' : 'Tauforged Shard'}
-                              </span>
-                              <input
-                                type="checkbox"
-                                checked={shard.tauforged || false}
-                                onChange={(e) => updateShard(shard.type, e.target.checked)}
-                                style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: 'var(--gold)' }}
-                              />
+
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            <div>
+                              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
+                                {lang === 'pt' ? 'Tipo de Fragmento' : 'Shard Type'}
+                              </div>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+                                {[
+                                  { type: null, label: lang === 'pt' ? 'Nenhum' : 'None', color: 'rgba(255,255,255,0.05)' },
+                                  { type: 'Crimson', label: 'Crimson', color: '#ef4444' },
+                                  { type: 'Amber', label: 'Amber', color: '#f59e0b' },
+                                  { type: 'Azure', label: 'Azure', color: '#3b82f6' },
+                                  { type: 'Violet', label: 'Violet', color: '#8b5cf6' },
+                                  { type: 'Topaz', label: 'Topaz', color: '#ea580c' },
+                                  { type: 'Emerald', label: 'Emerald', color: '#10b981' }
+                                ].map(opt => {
+                                  const isSelected = (!shard && opt.type === null) || (shard && shard.type === opt.type);
+                                  return (
+                                    <button
+                                      key={opt.type || 'none'}
+                                      onClick={() => updateShard(opt.type, shard ? shard.tauforged : false)}
+                                      style={{
+                                        padding: '0.25rem 0.6rem',
+                                        fontSize: '0.7rem',
+                                        borderRadius: '4px',
+                                        border: isSelected ? `1px solid ${opt.color}` : '1px solid transparent',
+                                        background: isSelected ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.01)',
+                                        color: isSelected ? 'var(--text-bright)' : 'var(--text-muted)',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.3rem',
+                                        transition: 'all 0.2s'
+                                      }}
+                                    >
+                                      {opt.type !== null && (
+                                        <span style={{ 
+                                          width: '8px', 
+                                          height: '8px', 
+                                          borderRadius: '50%', 
+                                          background: opt.color 
+                                        }} />
+                                      )}
+                                      {opt.label}
+                                    </button>
+                                  );
+                                })}
+                              </div>
                             </div>
-                          )}
+
+                            {shard && shard.type && (
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.25rem' }}>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--text-bright)' }}>
+                                  ⭐ {lang === 'pt' ? 'Fragmento Forjado em Tau (Tauforged)' : 'Tauforged Shard'}
+                                </span>
+                                <input 
+                                  type="checkbox" 
+                                  checked={shard.tauforged || false}
+                                  onChange={(e) => updateShard(shard.type, e.target.checked)}
+                                  style={{
+                                    width: '16px',
+                                    height: '16px',
+                                    cursor: 'pointer',
+                                    accentColor: 'var(--gold)'
+                                  }}
+                                />
+                              </div>
+                            )}
+                          </div>
                         </div>
                       );
                     })()}
@@ -7623,6 +7754,7 @@ export default function App() {
                   { label: lang === 'pt' ? 'Secundárias' : 'Secondary', val: stats.secondaryMastered, total: stats.secondaryCount },
                   { label: lang === 'pt' ? 'C. a C.' : 'Melee', val: stats.meleeMastered, total: stats.meleeCount },
                   { label: 'Warframes', val: stats.warframeMastered, total: stats.warframeCount },
+                  { label: lang === 'pt' ? 'Companheiros' : 'Companions', val: stats.companionMastered, total: stats.companionCount },
                   { label: lang === 'pt' ? 'Nêmesis' : 'Nemesis', val: stats.nemesisMastered, total: stats.nemesisCount }
                 ].map(bar => {
                   const pct = Math.min(100, (bar.val / bar.total) * 100 || 0);
