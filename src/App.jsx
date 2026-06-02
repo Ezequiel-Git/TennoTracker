@@ -1193,6 +1193,32 @@ const planetConnections = [
   ['mars', 'sanctum']
 ];
 
+const railjackProximas = [
+  { id: 'earth_proxima', namePt: 'Próxima da Terra', nameEn: 'Earth Proxima', maxNodes: 6 },
+  { id: 'venus_proxima', namePt: 'Próxima de Vênus', nameEn: 'Venus Proxima', maxNodes: 5 },
+  { id: 'saturn_proxima', namePt: 'Próxima de Saturno', nameEn: 'Saturn Proxima', maxNodes: 6 },
+  { id: 'neptune_proxima', namePt: 'Próxima de Netuno', nameEn: 'Neptune Proxima', maxNodes: 5 },
+  { id: 'pluto_proxima', namePt: 'Próxima de Plutão', nameEn: 'Pluto Proxima', maxNodes: 6 },
+  { id: 'veil_proxima', namePt: 'Próxima do Véu', nameEn: 'Veil Proxima', maxNodes: 6 }
+];
+
+const railjackCoordinates = {
+  earth_proxima: { x: 50, y: 55, color: 'linear-gradient(135deg, #1b4d3e 0%, #0d261e 100%)' },
+  venus_proxima: { x: 42, y: 40, color: 'linear-gradient(135deg, #8c561b 0%, #462b0d 100%)' },
+  saturn_proxima: { x: 30, y: 65, color: 'linear-gradient(135deg, #7d653f 0%, #3e321f 100%)' },
+  neptune_proxima: { x: 58, y: 75, color: 'linear-gradient(135deg, #14285c 0%, #0a142e 100%)' },
+  pluto_proxima: { x: 70, y: 45, color: 'linear-gradient(135deg, #5c4436 0%, #2e221b 100%)' },
+  veil_proxima: { x: 80, y: 25, color: 'linear-gradient(135deg, #4b145c 0%, #260a2e 100%)' }
+};
+
+const railjackConnections = [
+  ['earth_proxima', 'venus_proxima'],
+  ['venus_proxima', 'saturn_proxima'],
+  ['saturn_proxima', 'neptune_proxima'],
+  ['neptune_proxima', 'pluto_proxima'],
+  ['pluto_proxima', 'veil_proxima']
+];
+
 const getInferredThumbnail = (wikiaUrl, name) => {
   if (wikiaUrl) {
     try {
@@ -1649,7 +1675,13 @@ const planetNodesList = {
   deimos: ['Horend', 'Phlegyas', 'Fass', 'Vome', 'Nekralisk', 'Cambion Drift', 'Kullervo', 'Hiri', 'Alastor', 'Boreas', 'Thymos', 'Khora', 'Xaku', 'Zymos', 'Nidus', 'Necraloid', 'Deimos Gate', 'Loid', 'Otak', 'Mother', 'Son'],
   lua: ['Copernicus', 'Apollo', 'Grimaldi', 'Pavlov', 'Zeuxis', 'Stöfler', 'Tycho'],
   zariman: ['Halako Perimeter', 'Gyre', 'Angel', 'Zariman Bridge', 'Everlasting'],
-  sanctum: ['Anatomica', 'Fibonacci', 'Tagfer', 'Bird3', 'Cavia']
+  sanctum: ['Anatomica', 'Fibonacci', 'Tagfer', 'Bird3', 'Cavia'],
+  earth_proxima: ['Free Flight', 'Jareer\'s Reef', 'Sovereign Strait', 'Posit Cluster', 'Korm\'s Belt', 'Ovington Gold'],
+  venus_proxima: ['Vesper Strait', 'Linea Girdle', 'Aphrodite Waters', 'Cytherean Ridge', 'Orphix Resurgence'],
+  saturn_proxima: ['Cassini\'s Hope', 'Dione Crossing', 'Febe Anchor', 'Keeler Basin', 'Mimas Reach', 'Nebra Sector'],
+  neptune_proxima: ['Triton Graveyard', 'Nereid Deep', 'Proteus Outpost', 'Galatea Depot', 'Salacia Gate'],
+  pluto_proxima: ['Acheron Ruins', 'Hades Foothills', 'Regna Vault', 'Cerberus Station', 'Outer Terminus', 'Styx Nebula'],
+  veil_proxima: ['Gian Point', 'Flexa', 'R-9 Cloud', 'H-2 Cloud', 'Nsu Grid', 'Gox Basin']
 };
 
 // Generates coordinates for nodes in a winding, organic constellation path around a central zoomed-in planet
@@ -1801,7 +1833,7 @@ const GLYPHS = {
   },
   lotus: {
     name: 'Lotus',
-    emoji: '🪷',
+    emoji: '🌸',
     color: '#d8b4fe',
     svg: (
       <svg viewBox="0 0 100 100" fill="currentColor">
@@ -2116,6 +2148,33 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('wf_starchart_junctions', JSON.stringify(starChartJunctions));
   }, [starChartJunctions]);
+
+  // Railjack completion state: { proximaId: { nodeName: boolean } }
+  const [railjackCompletion, setRailjackCompletion] = useState(() => {
+    try {
+      const stored = localStorage.getItem('wf_starchart_railjack');
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('wf_starchart_railjack', JSON.stringify(railjackCompletion));
+  }, [railjackCompletion]);
+
+  // Warp transition overlay state
+  const [isWarping, setIsWarping] = useState(false);
+
+  const triggerWarpTransition = (callback) => {
+    setIsWarping(true);
+    setTimeout(() => {
+      if (callback) callback();
+    }, 400);
+    setTimeout(() => {
+      setIsWarping(false);
+    }, 800);
+  };
 
   // Current active mode (normal / steelpath) in Star Chart tab
   const [starChartMode, setStarChartMode] = useState('normal');
@@ -3074,9 +3133,11 @@ export default function App() {
     // Calculate Star Chart Mastery XP
     const normalCompletedNodes = starChartPlanets.reduce((acc, p) => acc + getPlanetCompletedNodesCount(p.id, starChartNormal), 0);
     const steelPathCompletedNodes = starChartPlanets.reduce((acc, p) => acc + getPlanetCompletedNodesCount(p.id, starChartSteelPath), 0);
+    const railjackCompletedNodes = railjackProximas.reduce((acc, p) => acc + getPlanetCompletedNodesCount(p.id, railjackCompletion), 0);
     const normalNodesXp = Math.min(27519, Math.round((normalCompletedNodes / 252) * 27519));
     const steelPathNodesXp = Math.min(27519, Math.round((steelPathCompletedNodes / 252) * 27519));
-    const starChartNodesXp = normalNodesXp + steelPathNodesXp;
+    const railjackXp = railjackCompletedNodes * 100;
+    const starChartNodesXp = normalNodesXp + steelPathNodesXp + railjackXp;
     const junctionsXp = (starChartJunctions || []).length * 1000;
     
     const totalMasteryPoints = weaponMasteryPoints + starChartNodesXp + junctionsXp;
@@ -3100,6 +3161,7 @@ export default function App() {
       junctionsXp,
       normalCompletedNodes,
       steelPathCompletedNodes,
+      railjackCompletedNodes,
       progressPercent,
       pointsToNextRank,
       weaponsToNextRank,
@@ -3114,7 +3176,7 @@ export default function App() {
       nemesisCount,
       nemesisMastered
     };
-  }, [weapons, inventory, masteryRank, starChartNormal, starChartSteelPath, starChartJunctions]);
+  }, [weapons, inventory, masteryRank, starChartNormal, starChartSteelPath, starChartJunctions, railjackCompletion]);
 
   const filteredWeapons = useMemo(() => {
     return weapons.filter(w => {
@@ -3174,15 +3236,19 @@ export default function App() {
         return (a.name || '').localeCompare(b.name || '');
       }
       if (sortBy === 'mastered-first') {
-        const stateA = (inventory[a.id]?.mastered || inventory[a.name]?.mastered) ? 1 : 0;
-        const stateB = (inventory[b.id]?.mastered || inventory[b.name]?.mastered) ? 1 : 0;
-        if (stateA !== stateB) return stateB - stateA;
+        const stateA = inventory[a.id] || inventory[a.name] || { owned: false, mastered: false };
+        const stateB = inventory[b.id] || inventory[b.name] || { owned: false, mastered: false };
+        const scoreA = stateA.mastered ? 2 : (stateA.owned ? 1 : 0);
+        const scoreB = stateB.mastered ? 2 : (stateB.owned ? 1 : 0);
+        if (scoreA !== scoreB) return scoreB - scoreA;
         return (a.name || '').localeCompare(b.name || '');
       }
       if (sortBy === 'unmastered-first') {
-        const stateA = (inventory[a.id]?.mastered || inventory[a.name]?.mastered) ? 1 : 0;
-        const stateB = (inventory[b.id]?.mastered || inventory[b.name]?.mastered) ? 1 : 0;
-        if (stateA !== stateB) return stateA - stateB;
+        const stateA = inventory[a.id] || inventory[a.name] || { owned: false, mastered: false };
+        const stateB = inventory[b.id] || inventory[b.name] || { owned: false, mastered: false };
+        const scoreA = stateA.mastered ? 2 : (stateA.owned ? 1 : 0);
+        const scoreB = stateB.mastered ? 2 : (stateB.owned ? 1 : 0);
+        if (scoreA !== scoreB) return scoreA - scoreB;
         return (a.name || '').localeCompare(b.name || '');
       }
       if (sortBy === 'vaulted-first') {
@@ -3325,6 +3391,7 @@ export default function App() {
       starChartNormal,
       starChartSteelPath,
       starChartJunctions,
+      railjackCompletion,
       arcanes: arcaneInventory,
       warframeShards
     };
@@ -3840,7 +3907,7 @@ export default function App() {
                           title={t.general.themeLabel}
                         >
                           <option value="orokin">⚜️ Orokin</option>
-                          <option value="lotus">🪷 Lotus</option>
+                          <option value="lotus">🌸 Lotus</option>
                           <option value="corpus">🟦 Corpus</option>
                           <option value="grineer">🟥 Grineer</option>
                           <option value="infested">☣️ Infested</option>
@@ -4016,11 +4083,11 @@ export default function App() {
                 {/* Star Chart Nodes */}
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.35rem' }}>
-                    <span>{t.nav.starchart || (lang === 'pt' ? 'Mapa Estelar' : 'Star Chart')} ({stats.starChartNodesXp.toLocaleString()} / 55,038 XP)</span>
-                    <span>{((stats.starChartNodesXp / 55038) * 100 || 0).toFixed(0)}%</span>
+                    <span>{t.nav.starchart || (lang === 'pt' ? 'Mapa Estelar' : 'Star Chart')} ({stats.starChartNodesXp.toLocaleString()} / 58,438 XP)</span>
+                    <span>{((stats.starChartNodesXp / 58438) * 100 || 0).toFixed(0)}%</span>
                   </div>
                   <div className="mastery-progress-bar-container" style={{ height: '12px' }}>
-                    <div className="mastery-progress-bar-fill starchart-progress-fill" style={{ width: `${(stats.starChartNodesXp / 55038) * 100 || 0}%` }}></div>
+                    <div className="mastery-progress-bar-fill starchart-progress-fill" style={{ width: `${(stats.starChartNodesXp / 58438) * 100 || 0}%` }}></div>
                   </div>
                 </div>
 
@@ -5150,15 +5217,48 @@ export default function App() {
               <div className="starchart-mode-selectors">
                 <button 
                   className={`starchart-mode-btn mode-normal ${starChartMode === 'normal' ? 'active' : ''}`}
-                  onClick={() => setStarChartMode('normal')}
+                  onClick={() => {
+                    if (starChartMode !== 'normal') {
+                      triggerWarpTransition(() => {
+                        setStarChartMode('normal');
+                        if (selectedPlanetId && selectedPlanetId.includes('proxima')) {
+                          setSelectedPlanetId(null);
+                        }
+                      });
+                    }
+                  }}
                 >
                   {t.starchart.modeNormal}
                 </button>
                 <button 
                   className={`starchart-mode-btn mode-steelpath ${starChartMode === 'steelpath' ? 'active' : ''}`}
-                  onClick={() => setStarChartMode('steelpath')}
+                  onClick={() => {
+                    if (starChartMode !== 'steelpath') {
+                      triggerWarpTransition(() => {
+                        setStarChartMode('steelpath');
+                        if (selectedPlanetId && selectedPlanetId.includes('proxima')) {
+                          setSelectedPlanetId(null);
+                        }
+                      });
+                    }
+                  }}
                 >
                   {t.starchart.modeSteelPath}
+                </button>
+                <button 
+                  className={`starchart-mode-btn mode-railjack ${starChartMode === 'railjack' ? 'active' : ''}`}
+                  onClick={() => {
+                    if (starChartMode !== 'railjack') {
+                      triggerWarpTransition(() => {
+                        setStarChartMode('railjack');
+                        if (selectedPlanetId && !selectedPlanetId.includes('proxima')) {
+                          setSelectedPlanetId(null);
+                        }
+                      });
+                    }
+                  }}
+                >
+                  {t.starchart.modeRailjack}
                 </button>
               </div>
 
@@ -5167,13 +5267,23 @@ export default function App() {
                   <span className="stat-value text-cyan">
                     {starChartMode === 'normal' 
                       ? `${stats.normalCompletedNodes} / 252` 
-                      : `${stats.steelPathCompletedNodes} / 252`}
+                      : starChartMode === 'railjack'
+                        ? `${stats.railjackCompletedNodes} / 34`
+                        : `${stats.steelPathCompletedNodes} / 252`}
                   </span>
                   <span className="stat-label">{t.starchart.completedNodes}</span>
                 </div>
                 <div className="starchart-stat-box">
                   <span className="stat-value text-cyan">
-                    {stats.starChartNodesXp.toLocaleString()} XP
+                    {(() => {
+                      if (starChartMode === 'normal') {
+                        return Math.min(27519, Math.round((stats.normalCompletedNodes / 252) * 27519)).toLocaleString();
+                      } else if (starChartMode === 'steelpath') {
+                        return Math.min(27519, Math.round((stats.steelPathCompletedNodes / 252) * 27519)).toLocaleString();
+                      } else {
+                        return (stats.railjackCompletedNodes * 100).toLocaleString();
+                      }
+                    })()} XP
                   </span>
                   <span className="stat-label">{t.starchart.totalEarned}</span>
                 </div>
@@ -5182,15 +5292,37 @@ export default function App() {
 
             <div className="starchart-interactive-layout">
               {/* Left Side: Interactive Planet Map */}
-              <div className="starchart-map-container">
+              <div className={`starchart-map-container ${isWarping ? 'warp-shake' : ''}`} style={{ position: 'relative' }}>
                 <div className="starchart-map-canvas">
+                  {isWarping && (
+                    <div className="starchart-warp-overlay">
+                      {Array.from({ length: 40 }).map((_, i) => {
+                        const angle = Math.random() * 2 * Math.PI;
+                        const distance = 50 + Math.random() * 150; // Start distance
+                        const size = 1 + Math.random() * 2; // Width in px
+                        const length = 40 + Math.random() * 120; // Length in px
+                        const delay = Math.random() * 0.3; // Random delay up to 0.3s
+                        const duration = 0.3 + Math.random() * 0.4; // Random duration 0.3s to 0.7s
+                        
+                        const style = {
+                          '--angle': `${angle}rad`,
+                          '--distance': `${distance}px`,
+                          '--size': `${size}px`,
+                          '--length': `${length}px`,
+                          animationDelay: `${delay}s`,
+                          animationDuration: `${duration}s`
+                        };
+                        return <div key={i} className="warp-star" style={style} />;
+                      })}
+                    </div>
+                  )}
                   {selectedPlanetId ? (
                     /* Zoomed-in Planet Detail View */
                     <div className="starchart-zoom-view">
                       {/* Floating Back Button */}
                       <button 
                         className="zoom-back-btn" 
-                        onClick={() => setSelectedPlanetId(null)}
+                        onClick={() => triggerWarpTransition(() => setSelectedPlanetId(null))}
                       >
                         <ChevronLeft size={16} />
                         <span>{lang === 'pt' ? 'SISTEMA SOLAR' : 'SOLAR SYSTEM'}</span>
@@ -5204,15 +5336,22 @@ export default function App() {
                             boxShadow: `0 0 50px ${
                               starChartMode === 'steelpath' 
                                 ? 'rgba(255, 59, 48, 0.45)' 
-                                : 'rgba(0, 240, 255, 0.45)'
-                            }`
+                                : starChartMode === 'railjack'
+                                  ? 'rgba(120, 20, 255, 0.45)'
+                                  : 'rgba(0, 240, 255, 0.45)'
+                            }`,
+                            background: starChartMode === 'railjack'
+                              ? railjackCoordinates[selectedPlanetId]?.color
+                              : undefined
                           }}
                         />
                         <span className="zoom-planet-title">
-                          {lang === 'pt' 
-                            ? starChartPlanets.find(p => p.id === selectedPlanetId)?.namePt 
-                            : starChartPlanets.find(p => p.id === selectedPlanetId)?.nameEn
-                          }
+                          {(() => {
+                            const p = starChartMode === 'railjack'
+                              ? railjackProximas.find(p => p.id === selectedPlanetId)
+                              : starChartPlanets.find(p => p.id === selectedPlanetId);
+                            return p ? (lang === 'pt' ? p.namePt : p.nameEn) : '';
+                          })()}
                         </span>
 
                         {(selectedPlanetId === 'deimos' || selectedPlanetId === 'sanctum') && (
@@ -5241,8 +5380,20 @@ export default function App() {
                           for (let i = 0; i < nodes.length - 1; i++) {
                             const c1 = getNodeCoords(i, nodes.length);
                             const c2 = getNodeCoords(i + 1, nodes.length);
-                            const isN1Completed = isPlanetNodeCompleted(selectedPlanetId, nodes[i], starChartMode === 'normal' ? starChartNormal : starChartSteelPath);
-                            const isN2Completed = isPlanetNodeCompleted(selectedPlanetId, nodes[i + 1], starChartMode === 'normal' ? starChartNormal : starChartSteelPath);
+                            const isN1Completed = isPlanetNodeCompleted(
+                              selectedPlanetId, 
+                              nodes[i], 
+                              starChartMode === 'railjack' 
+                                ? railjackCompletion 
+                                : (starChartMode === 'normal' ? starChartNormal : starChartSteelPath)
+                            );
+                            const isN2Completed = isPlanetNodeCompleted(
+                              selectedPlanetId, 
+                              nodes[i + 1], 
+                              starChartMode === 'railjack' 
+                                ? railjackCompletion 
+                                : (starChartMode === 'normal' ? starChartNormal : starChartSteelPath)
+                            );
                             const isActive = isN1Completed && isN2Completed;
                             
                             lines.push(
@@ -5252,7 +5403,9 @@ export default function App() {
                                 y1={`${c1.y}%`}
                                 x2={`${c2.x}%`}
                                 y2={`${c2.y}%`}
-                                className={`node-connection-line ${isActive ? 'active' : ''} ${starChartMode === 'steelpath' ? 'steelpath' : ''}`}
+                                className={`node-connection-line ${isActive ? 'active' : ''} ${
+                                  starChartMode === 'steelpath' ? 'steelpath' : starChartMode === 'railjack' ? 'railjack' : ''
+                                }`}
                               />
                             );
                           }
@@ -5265,14 +5418,31 @@ export default function App() {
                         const nodes = planetNodesList[selectedPlanetId] || [];
                         return nodes.map((nodeName, idx) => {
                           const coords = getNodeCoords(idx, nodes.length);
-                          const isCompleted = isPlanetNodeCompleted(selectedPlanetId, nodeName, starChartMode === 'normal' ? starChartNormal : starChartSteelPath);
+                          const isCompleted = isPlanetNodeCompleted(
+                            selectedPlanetId, 
+                            nodeName, 
+                            starChartMode === 'railjack' 
+                              ? railjackCompletion 
+                              : (starChartMode === 'normal' ? starChartNormal : starChartSteelPath)
+                          );
                           
                           return (
                             <button
                               key={nodeName}
-                              className={`map-mission-node ${isCompleted ? 'completed' : ''} ${starChartMode === 'steelpath' ? 'steelpath' : ''}`}
+                              className={`map-mission-node ${isCompleted ? 'completed' : ''} ${
+                                starChartMode === 'steelpath' ? 'steelpath' : starChartMode === 'railjack' ? 'railjack' : ''
+                              }`}
                               style={{ left: `${coords.x}%`, top: `${coords.y}%` }}
-                              onClick={() => togglePlanetNode(selectedPlanetId, nodeName, starChartMode === 'normal' ? starChartNormal : starChartSteelPath, starChartMode === 'normal' ? setStarChartNormal : setStarChartSteelPath)}
+                              onClick={() => togglePlanetNode(
+                                selectedPlanetId, 
+                                nodeName, 
+                                starChartMode === 'railjack' 
+                                  ? railjackCompletion 
+                                  : (starChartMode === 'normal' ? starChartNormal : starChartSteelPath), 
+                                starChartMode === 'railjack' 
+                                  ? setRailjackCompletion 
+                                  : (starChartMode === 'normal' ? setStarChartNormal : setStarChartSteelPath)
+                              )}
                               title={`${nodeName} (${isCompleted ? (lang === 'pt' ? 'Concluído' : 'Completed') : (lang === 'pt' ? 'Pendente' : 'Pending')})`}
                             >
                               <div className="node-dot" />
@@ -5283,83 +5453,163 @@ export default function App() {
                       })()}
                     </div>
                   ) : (
-                    /* Regular Full Solar Map View */
+                    /* Regular Full Solar Map View / Railjack Proxima Map View */
                     <>
-                      {/* Central Core Portal */}
-                      <div className="starchart-map-core">
-                        <div className="core-glow"></div>
-                      </div>
+                      {starChartMode === 'railjack' ? (
+                        <>
+                          {/* Railjack cosmic core overlay */}
+                          <div className="starchart-map-core railjack-core">
+                            <div className="core-glow railjack-glow"></div>
+                          </div>
 
-                      {/* SVG Progression Lines */}
-                      <svg className="starchart-map-connections" viewBox="0 0 100 100" preserveAspectRatio="none">
-                        {/* Concentric Orbit Rings */}
-                        <circle cx="50" cy="50" r="10" className="orbit-ring" />
-                        <circle cx="50" cy="50" r="18" className="orbit-ring" />
-                        <circle cx="50" cy="50" r="26" className="orbit-ring" />
-                        <circle cx="50" cy="50" r="34" className="orbit-ring" />
-                        <circle cx="50" cy="50" r="42" className="orbit-ring" />
-                        <circle cx="50" cy="50" r="50" className="orbit-ring" />
-                        {planetConnections.filter(([start, end]) => start !== 'sanctum' && end !== 'sanctum').map(([start, end], idx) => {
-                          const startCoord = planetCoordinates[start];
-                          const endCoord = planetCoordinates[end];
-                          if (!startCoord || !endCoord) return null;
+                          {/* SVG Railjack connections */}
+                          <svg className="starchart-map-connections" viewBox="0 0 100 100" preserveAspectRatio="none">
+                            {/* Subtle grid lines for cockpit radar effect */}
+                            <circle cx="50" cy="50" r="15" className="orbit-ring railjack-grid" />
+                            <circle cx="50" cy="50" r="30" className="orbit-ring railjack-grid" />
+                            <circle cx="50" cy="50" r="45" className="orbit-ring railjack-grid" />
+                            {railjackConnections.map(([start, end], idx) => {
+                              const startCoord = railjackCoordinates[start];
+                              const endCoord = railjackCoordinates[end];
+                              if (!startCoord || !endCoord) return null;
 
-                          const isStartCompleted = getPlanetCompletedNodesCount(start, starChartMode === 'normal' ? starChartNormal : starChartSteelPath) === starChartPlanets.find(p => p.id === start)?.maxNodes;
-                          const isEndCompleted = getPlanetCompletedNodesCount(end, starChartMode === 'normal' ? starChartNormal : starChartSteelPath) === starChartPlanets.find(p => p.id === end)?.maxNodes;
-                          const isActive = isStartCompleted && isEndCompleted;
+                              const isStartCompleted = getPlanetCompletedNodesCount(start, railjackCompletion) === railjackProximas.find(p => p.id === start)?.maxNodes;
+                              const isEndCompleted = getPlanetCompletedNodesCount(end, railjackCompletion) === railjackProximas.find(p => p.id === end)?.maxNodes;
+                              const isActive = isStartCompleted && isEndCompleted;
 
-                          return (
-                            <line 
-                              key={idx}
-                              x1={`${startCoord.x}%`} 
-                              y1={`${startCoord.y}%`} 
-                              x2={`${endCoord.x}%`} 
-                              y2={`${endCoord.y}%`} 
-                              className={`connection-line ${isActive ? 'active' : ''} ${starChartMode === 'steelpath' ? 'steelpath' : ''}`}
-                            />
-                          );
-                        })}
-                      </svg>
+                              return (
+                                <line 
+                                  key={idx}
+                                  x1={`${startCoord.x}%`} 
+                                  y1={`${startCoord.y}%`} 
+                                  x2={`${endCoord.x}%`} 
+                                  y2={`${endCoord.y}%`} 
+                                  className={`connection-line ${isActive ? 'active' : ''} railjack`}
+                                />
+                              );
+                            })}
+                          </svg>
 
-                      {/* Interactive Planet Nodes */}
-                      {starChartPlanets.filter(planet => planet.id !== 'sanctum').map(planet => {
-                        const coords = planetCoordinates[planet.id];
-                        if (!coords) return null;
+                          {/* Interactive Proxima Nodes */}
+                          {railjackProximas.map(proxima => {
+                            const coords = railjackCoordinates[proxima.id];
+                            if (!coords) return null;
 
-                        const currentNodes = getPlanetCompletedNodesCount(planet.id, starChartMode === 'normal' ? starChartNormal : starChartSteelPath);
-                        const isCompleted = currentNodes === planet.maxNodes;
-                        const percent = Math.round((currentNodes / planet.maxNodes) * 100 || 0);
-                        const isSelected = selectedPlanetId === planet.id;
-                        const bobDelay = `${((coords.x + coords.y) % 5) * -1.2}s`;
+                            const currentNodes = getPlanetCompletedNodesCount(proxima.id, railjackCompletion);
+                            const isCompleted = currentNodes === proxima.maxNodes;
+                            const percent = Math.round((currentNodes / proxima.maxNodes) * 100 || 0);
+                            const isSelected = selectedPlanetId === proxima.id;
+                            const bobDelay = `${((coords.x + coords.y) % 5) * -1.2}s`;
 
-                        return (
-                          <button
-                            key={planet.id}
-                            data-id={planet.id}
-                            className={`map-planet-node ${isSelected ? 'selected' : ''} ${isCompleted ? 'completed' : ''}`}
-                            style={{ left: `${coords.x}%`, top: `${coords.y}%` }}
-                            onClick={() => setSelectedPlanetId(planet.id)}
-                            title={`${lang === 'pt' ? planet.namePt : planet.nameEn} (${currentNodes}/${planet.maxNodes})`}
-                          >
-                            <div className="planet-wrapper-bobbing" style={{ animationDelay: bobDelay }}>
-                              <div 
-                                className="planet-sphere" 
-                                style={{ 
-                                  boxShadow: isSelected 
-                                    ? `0 0 20px ${starChartMode === 'steelpath' ? '#ff3b30' : 'var(--cyan)'}`
-                                    : isCompleted
-                                      ? `0 0 10px ${starChartMode === 'steelpath' ? '#d4af37' : '#007aff'}`
-                                      : 'none'
-                                }}
-                              />
-                            </div>
-                            <span className="planet-label">
-                              {lang === 'pt' ? planet.namePt : planet.nameEn}
-                              <span className="planet-badge">{percent}%</span>
-                            </span>
-                          </button>
-                        );
-                      })}
+                            return (
+                              <button
+                                key={proxima.id}
+                                data-id={proxima.id}
+                                className={`map-planet-node railjack-planet-node ${isSelected ? 'selected' : ''} ${isCompleted ? 'completed' : ''}`}
+                                style={{ left: `${coords.x}%`, top: `${coords.y}%` }}
+                                onClick={() => triggerWarpTransition(() => setSelectedPlanetId(proxima.id))}
+                                title={`${lang === 'pt' ? proxima.namePt : proxima.nameEn} (${currentNodes}/${proxima.maxNodes})`}
+                              >
+                                <div className="planet-wrapper-bobbing" style={{ animationDelay: bobDelay }}>
+                                  <div 
+                                    className="planet-sphere" 
+                                    style={{ 
+                                      background: coords.color,
+                                      boxShadow: isSelected 
+                                        ? `0 0 20px rgba(120, 20, 255, 0.8)`
+                                        : isCompleted
+                                          ? `0 0 10px rgba(120, 20, 255, 0.5)`
+                                          : 'none'
+                                    }}
+                                  />
+                                </div>
+                                <span className="planet-label">
+                                  {lang === 'pt' ? proxima.namePt : proxima.nameEn}
+                                  <span className="planet-badge railjack-badge">{percent}%</span>
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </>
+                      ) : (
+                        <>
+                          {/* Central Core Portal */}
+                          <div className="starchart-map-core">
+                            <div className="core-glow"></div>
+                          </div>
+
+                          {/* SVG Progression Lines */}
+                          <svg className="starchart-map-connections" viewBox="0 0 100 100" preserveAspectRatio="none">
+                            {/* Concentric Orbit Rings */}
+                            <circle cx="50" cy="50" r="10" className="orbit-ring" />
+                            <circle cx="50" cy="50" r="18" className="orbit-ring" />
+                            <circle cx="50" cy="50" r="26" className="orbit-ring" />
+                            <circle cx="50" cy="50" r="34" className="orbit-ring" />
+                            <circle cx="50" cy="50" r="42" className="orbit-ring" />
+                            <circle cx="50" cy="50" r="50" className="orbit-ring" />
+                            {planetConnections.filter(([start, end]) => start !== 'sanctum' && end !== 'sanctum').map(([start, end], idx) => {
+                              const startCoord = planetCoordinates[start];
+                              const endCoord = planetCoordinates[end];
+                              if (!startCoord || !endCoord) return null;
+
+                              const isStartCompleted = getPlanetCompletedNodesCount(start, starChartMode === 'normal' ? starChartNormal : starChartSteelPath) === starChartPlanets.find(p => p.id === start)?.maxNodes;
+                              const isEndCompleted = getPlanetCompletedNodesCount(end, starChartMode === 'normal' ? starChartNormal : starChartSteelPath) === starChartPlanets.find(p => p.id === end)?.maxNodes;
+                              const isActive = isStartCompleted && isEndCompleted;
+
+                              return (
+                                <line 
+                                  key={idx}
+                                  x1={`${startCoord.x}%`} 
+                                  y1={`${startCoord.y}%`} 
+                                  x2={`${endCoord.x}%`} 
+                                  y2={`${endCoord.y}%`} 
+                                  className={`connection-line ${isActive ? 'active' : ''} ${starChartMode === 'steelpath' ? 'steelpath' : ''}`}
+                                />
+                              );
+                            })}
+                          </svg>
+
+                          {/* Interactive Planet Nodes */}
+                          {starChartPlanets.filter(planet => planet.id !== 'sanctum').map(planet => {
+                            const coords = planetCoordinates[planet.id];
+                            if (!coords) return null;
+
+                            const currentNodes = getPlanetCompletedNodesCount(planet.id, starChartMode === 'normal' ? starChartNormal : starChartSteelPath);
+                            const isCompleted = currentNodes === planet.maxNodes;
+                            const percent = Math.round((currentNodes / planet.maxNodes) * 100 || 0);
+                            const isSelected = selectedPlanetId === planet.id;
+                            const bobDelay = `${((coords.x + coords.y) % 5) * -1.2}s`;
+
+                            return (
+                              <button
+                                key={planet.id}
+                                data-id={planet.id}
+                                className={`map-planet-node ${isSelected ? 'selected' : ''} ${isCompleted ? 'completed' : ''}`}
+                                style={{ left: `${coords.x}%`, top: `${coords.y}%` }}
+                                onClick={() => triggerWarpTransition(() => setSelectedPlanetId(planet.id))}
+                                title={`${lang === 'pt' ? planet.namePt : planet.nameEn} (${currentNodes}/${planet.maxNodes})`}
+                              >
+                                <div className="planet-wrapper-bobbing" style={{ animationDelay: bobDelay }}>
+                                  <div 
+                                    className="planet-sphere" 
+                                    style={{ 
+                                      boxShadow: isSelected 
+                                        ? `0 0 20px ${starChartMode === 'steelpath' ? '#ff3b30' : 'var(--cyan)'}`
+                                        : isCompleted
+                                          ? `0 0 10px ${starChartMode === 'steelpath' ? '#d4af37' : '#007aff'}`
+                                          : 'none'
+                                    }}
+                                  />
+                                </div>
+                                <span className="planet-label">
+                                  {lang === 'pt' ? planet.namePt : planet.nameEn}
+                                  <span className="planet-badge">{percent}%</span>
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </>
+                      )}
                     </>
                   )}
                 </div>
@@ -5368,7 +5618,9 @@ export default function App() {
               {/* Right Side: Planet Control Sidebar */}
               <div className="starchart-control-sidebar glass-panel">
                 {(() => {
-                  const planet = starChartPlanets.find(p => p.id === selectedPlanetId);
+                  const planet = starChartMode === 'railjack'
+                    ? railjackProximas.find(p => p.id === selectedPlanetId)
+                    : starChartPlanets.find(p => p.id === selectedPlanetId);
                   if (!planet) {
                     return (
                       <div className="sidebar-empty-state">
@@ -5378,7 +5630,12 @@ export default function App() {
                     );
                   }
 
-                  const currentNodes = getPlanetCompletedNodesCount(planet.id, starChartMode === 'normal' ? starChartNormal : starChartSteelPath);
+                  const currentNodes = getPlanetCompletedNodesCount(
+                    planet.id, 
+                    starChartMode === 'railjack' 
+                      ? railjackCompletion 
+                      : (starChartMode === 'normal' ? starChartNormal : starChartSteelPath)
+                  );
                   const isCompleted = currentNodes === planet.maxNodes;
                   const percent = Math.min(100, Math.round((currentNodes / planet.maxNodes) * 100));
 
@@ -5390,7 +5647,9 @@ export default function App() {
                         currentMap[name] = true;
                       });
                     }
-                    if (starChartMode === 'normal') {
+                    if (starChartMode === 'railjack') {
+                      setRailjackCompletion(prev => ({ ...prev, [planet.id]: currentMap }));
+                    } else if (starChartMode === 'normal') {
                       setStarChartNormal(prev => ({ ...prev, [planet.id]: currentMap }));
                     } else {
                       setStarChartSteelPath(prev => ({ ...prev, [planet.id]: currentMap }));
@@ -5405,7 +5664,9 @@ export default function App() {
                       if (idx < newCount) currentMap[name] = true;
                     });
                     
-                    if (starChartMode === 'normal') {
+                    if (starChartMode === 'railjack') {
+                      setRailjackCompletion(prev => ({ ...prev, [planet.id]: currentMap }));
+                    } else if (starChartMode === 'normal') {
                       setStarChartNormal(prev => ({ ...prev, [planet.id]: currentMap }));
                     } else {
                       setStarChartSteelPath(prev => ({ ...prev, [planet.id]: currentMap }));
@@ -5415,7 +5676,15 @@ export default function App() {
                   return (
                     <div className="sidebar-active-planet">
                       <div className="planet-details-header">
-                        <h3 className="planet-title glow-cyan" style={{ textShadow: starChartMode === 'steelpath' ? '0 0 8px rgba(255, 59, 48, 0.4)' : '0 0 8px rgba(0, 240, 255, 0.4)' }}>
+                        <h3 className={`planet-title ${
+                          starChartMode === 'steelpath' ? 'glow-red' : starChartMode === 'railjack' ? 'glow-purple' : 'glow-cyan'
+                        }`} style={{ 
+                          textShadow: starChartMode === 'steelpath' 
+                            ? '0 0 8px rgba(255, 59, 48, 0.4)' 
+                            : starChartMode === 'railjack'
+                              ? '0 0 8px rgba(120, 20, 255, 0.4)'
+                              : '0 0 8px rgba(0, 240, 255, 0.4)' 
+                        }}>
                           {lang === 'pt' ? planet.namePt : planet.nameEn}
                         </h3>
                         <span className="planet-node-stats text-muted">
@@ -5424,8 +5693,14 @@ export default function App() {
                       </div>
 
                       {/* Mode Indicator Badge */}
-                      <div className={`planet-mode-badge ${starChartMode === 'steelpath' ? 'steelpath' : 'normal'}`}>
-                        {starChartMode === 'normal' ? t.starchart.modeNormal : t.starchart.modeSteelPath}
+                      <div className={`planet-mode-badge ${
+                        starChartMode === 'steelpath' ? 'steelpath' : starChartMode === 'railjack' ? 'railjack' : 'normal'
+                      }`}>
+                        {starChartMode === 'normal' 
+                          ? t.starchart.modeNormal 
+                          : starChartMode === 'railjack' 
+                            ? t.starchart.modeRailjack 
+                            : t.starchart.modeSteelPath}
                       </div>
 
                       {/* Progress section */}
@@ -5439,7 +5714,11 @@ export default function App() {
                             className="mastery-progress-bar-fill" 
                             style={{ 
                               width: `${percent}%`,
-                              background: starChartMode === 'steelpath' ? 'linear-gradient(90deg, #d4af37, #ff3b30)' : 'linear-gradient(90deg, var(--cyan), #007aff)'
+                              background: starChartMode === 'steelpath' 
+                                ? 'linear-gradient(90deg, #d4af37, #ff3b30)' 
+                                : starChartMode === 'railjack'
+                                  ? 'linear-gradient(90deg, #b026ff, #4b145c)'
+                                  : 'linear-gradient(90deg, var(--cyan), #007aff)'
                             }}
                           />
                         </div>
@@ -5486,13 +5765,28 @@ export default function App() {
                         <span className="nodes-list-title">{lang === 'pt' ? 'Lista de Nós' : 'Node List'}</span>
                         <div className="sidebar-nodes-scroll">
                           {(planetNodesList[planet.id] || []).map(nodeName => {
-                            const isNodeDone = isPlanetNodeCompleted(planet.id, nodeName, starChartMode === 'normal' ? starChartNormal : starChartSteelPath);
+                            const isNodeDone = isPlanetNodeCompleted(
+                              planet.id, 
+                              nodeName, 
+                              starChartMode === 'railjack' 
+                                ? railjackCompletion 
+                                : (starChartMode === 'normal' ? starChartNormal : starChartSteelPath)
+                            );
                             return (
                               <label key={nodeName} className={`sidebar-node-item ${isNodeDone ? 'done' : ''}`}>
                                 <input
                                   type="checkbox"
                                   checked={isNodeDone}
-                                  onChange={() => togglePlanetNode(planet.id, nodeName, starChartMode === 'normal' ? starChartNormal : starChartSteelPath, starChartMode === 'normal' ? setStarChartNormal : setStarChartSteelPath)}
+                                  onChange={() => togglePlanetNode(
+                                    planet.id, 
+                                    nodeName, 
+                                    starChartMode === 'railjack' 
+                                      ? railjackCompletion 
+                                      : (starChartMode === 'normal' ? starChartNormal : starChartSteelPath), 
+                                    starChartMode === 'railjack' 
+                                      ? setRailjackCompletion 
+                                      : (starChartMode === 'normal' ? setStarChartNormal : setStarChartSteelPath)
+                                  )}
                                 />
                                 <span className="node-item-name">{nodeName}</span>
                               </label>
@@ -6344,6 +6638,7 @@ export default function App() {
                   if (data.starChartNormal) setStarChartNormal(data.starChartNormal);
                   if (data.starChartSteelPath) setStarChartSteelPath(data.starChartSteelPath);
                   if (data.starChartJunctions) setStarChartJunctions(data.starChartJunctions);
+                  if (data.railjackCompletion) setRailjackCompletion(data.railjackCompletion);
                   if (data.arcanes) setArcaneInventory(data.arcanes);
                   else if (data.arcaneInventory) setArcaneInventory(data.arcaneInventory);
                   if (data.warframeShards) setWarframeShards(data.warframeShards);

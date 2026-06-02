@@ -174,7 +174,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .header-container {
-  max-width: 1400px;
+  max-width: 1600px;
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
@@ -234,7 +234,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .main-content {
   flex: 1;
-  max-width: 1400px;
+  max-width: 1600px;
   width: 100%;
   margin: 0 auto;
   padding: 2rem;
@@ -362,7 +362,7 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 12px;
   transition: width 0.5s ease-out;
   position: relative;
-  box-shadow: 0 0 15px rgba(var(--cyan-rgb), 0.6);
+  box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.25);
   overflow: hidden;
 }
 
@@ -400,6 +400,20 @@ h1, h2, h3, h4, h5, h6 {
   );
   animation: stripeMove 2s linear infinite;
   border-radius: 12px;
+}
+
+/* Hide empty progress bar fills entirely to prevent rendering rounded knobs or outer shadow artifacts at 0% */
+.mastery-progress-bar-fill[style*="width: 0%"],
+.mastery-progress-bar-fill[style*="width:0%"],
+.mastery-progress-bar-fill[style*="width: 0px"],
+.mastery-progress-bar-fill[style*="width:0px"],
+.mods-progress-fill[style*="width: 0%"],
+.mods-progress-fill[style*="width:0%"],
+.mods-progress-fill[style*="width: 0px"],
+.mods-progress-fill[style*="width:0px"] {
+  display: none !important;
+  opacity: 0 !important;
+  box-shadow: none !important;
 }
 
 @keyframes glowSweep {
@@ -1545,7 +1559,7 @@ h1, h2, h3, h4, h5, h6 {
 /* Warframe Progress Fill */
 .warframe-progress-fill {
   background: linear-gradient(90deg, #dfb858 0%, #cca34b 100%) !important;
-  box-shadow: 0 0 10px rgba(204, 163, 75, 0.4) !important;
+  box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.25) !important;
 }
 
 /* Warframe Status Detail Fills */
@@ -2017,7 +2031,7 @@ h1, h2, h3, h4, h5, h6 {
 .mods-progress-fill {
   height: 100%;
   background: linear-gradient(90deg, var(--cyan) 0%, var(--gold) 100%);
-  box-shadow: 0 0 12px rgba(var(--cyan-rgb), 0.5);
+  box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.2);
   transition: width 0.4s ease-out;
 }
 
@@ -3477,6 +3491,17 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 2rem;
 }
 
+@media (max-width: 1200px) {
+  .starchart-tab-container {
+    padding: 1.25rem;
+  }
+}
+@media (max-width: 768px) {
+  .starchart-tab-container {
+    padding: 0.75rem;
+  }
+}
+
 /* Container for Junctions tab */
 .junctions-tab-container {
   position: relative;
@@ -3577,7 +3602,7 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
 }
 
-@media (max-width: 990px) {
+@media (max-width: 1200px) {
   .starchart-interactive-layout {
     flex-direction: column;
     gap: 1.5rem;
@@ -3588,6 +3613,10 @@ h1, h2, h3, h4, h5, h6 {
 .starchart-map-container {
   flex: 1;
   min-width: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Space Map Canvas */
@@ -3595,14 +3624,16 @@ h1, h2, h3, h4, h5, h6 {
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
-  min-height: 520px;
   background-image: linear-gradient(rgba(10, 15, 30, 0.1), rgba(6, 10, 20, 0.35)), url('../public/starchart_accurate_bg.png');
   background-size: cover;
+  background-repeat: no-repeat;
   background-position: center;
   border-radius: 12px;
   border: 1px solid rgba(0, 240, 255, 0.2);
   box-shadow: inset 0 0 40px rgba(0, 240, 255, 0.05), 0 10px 30px rgba(0, 0, 0, 0.4);
   overflow: hidden;
+  container-type: inline-size;
+  container-name: starchart-canvas;
 }
 
 
@@ -3622,10 +3653,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .core-glow {
   position: absolute;
-  left: -25px;
-  top: -25px;
-  right: -25px;
-  bottom: -25px;
+  left: -90%;
+  top: -90%;
+  right: -90%;
+  bottom: -90%;
   background: radial-gradient(circle, rgba(255, 120, 0, 0.3) 0%, transparent 70%);
   border-radius: 50%;
   animation: corePulse 3s infinite ease-in-out;
@@ -3785,7 +3816,7 @@ h1, h2, h3, h4, h5, h6 {
   animation: slideInRight 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@media (max-width: 990px) {
+@media (max-width: 1200px) {
   .starchart-control-sidebar {
     width: 100%;
   }
@@ -4127,12 +4158,12 @@ h1, h2, h3, h4, h5, h6 {
 /* Dashboard customized progress bar colors */
 .starchart-progress-fill {
   background: linear-gradient(90deg, var(--cyan), #007aff) !important;
-  box-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+  box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.25) !important;
 }
 
 .junctions-progress-fill {
   background: linear-gradient(90deg, var(--gold), #ff9500) !important;
-  box-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+  box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.25) !important;
 }
 
 /* ==========================================================================
@@ -5147,12 +5178,15 @@ h1, h2, h3, h4, h5, h6 {
 .starchart-map-container {
   flex: 1;
   min-width: 0;
-  overflow-x: auto;
+  overflow: hidden;
   border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .starchart-map-canvas {
-  min-width: 850px;
+  /* Dimensions managed entirely by width: 100% and aspect-ratio now */
 }
 
 /* Junctions list mobile sizing */
@@ -5634,6 +5668,348 @@ body {
   50% { transform: scale(1.06); filter: brightness(1.3); }
   100% { transform: scale(1); filter: brightness(1); }
 }
+
+/* ==========================================================================
+   RAILJACK MODE & SPACE WARP SPEED TRANSITIONS
+   ========================================================================== */
+
+/* Railjack Mode Selector Button */
+.starchart-mode-btn.active.mode-railjack {
+  background: rgba(168, 85, 247, 0.18) !important;
+  border-color: #a855f7 !important;
+  color: #c084fc !important;
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.35) !important;
+  text-shadow: 0 0 8px rgba(168, 85, 247, 0.5) !important;
+}
+
+/* Space Warp Speed Overlay */
+.starchart-warp-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(4, 3, 15, 0.85);
+  z-index: 100;
+  overflow: hidden;
+  pointer-events: none;
+  animation: warpFade 0.8s ease-in-out forwards;
+}
+
+.warp-star {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--size);
+  height: var(--length);
+  background: linear-gradient(to top, #ffffff 0%, rgba(168, 85, 247, 0.8) 40%, rgba(236, 72, 153, 0.3) 70%, transparent 100%);
+  border-radius: 50%;
+  transform-origin: 50% 100%;
+  transform: rotate(var(--angle)) translateY(0px) scaleY(0.1);
+  animation-name: starWarp;
+  animation-timing-function: cubic-bezier(0.1, 0.8, 0.3, 1);
+  animation-fill-mode: forwards;
+}
+
+@keyframes starWarp {
+  0% {
+    transform: rotate(var(--angle)) translateY(0px) scaleY(0.1);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(var(--angle)) translateY(calc(-1 * var(--distance))) scaleY(2);
+    opacity: 0;
+  }
+}
+
+@keyframes warpFade {
+  0% { opacity: 0; }
+  35%, 65% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Cockpit Vibration Shake Animation */
+.warp-shake {
+  animation: warpShake 0.8s cubic-bezier(.36,.07,.19,.97) both;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+@keyframes warpShake {
+  10%, 90% {
+    transform: translate3d(-1px, 0px, 0);
+  }
+  20%, 80% {
+    transform: translate3d(2px, 1px, 0);
+  }
+  30%, 50%, 70% {
+    transform: translate3d(-3px, -2px, 0);
+  }
+  40%, 60% {
+    transform: translate3d(3px, 2px, 0);
+  }
+}
+
+/* Railjack Cosmic Core Overlay */
+.railjack-core {
+  background: radial-gradient(circle, #ffffff 0%, rgba(139, 92, 246, 0.85) 60%, transparent 100%) !important;
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.6);
+}
+
+.railjack-glow {
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, transparent 70%) !important;
+  animation: corePulsePurple 3s infinite ease-in-out;
+}
+
+@keyframes corePulsePurple {
+  0% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.4); opacity: 0.95; }
+  100% { transform: scale(1); opacity: 0.5; }
+}
+
+/* Orbit ring grids */
+.orbit-ring.railjack-grid {
+  stroke: rgba(168, 85, 247, 0.08) !important;
+  stroke-dasharray: 3, 5 !important;
+}
+
+/* Connection Lines for Railjack */
+.connection-line.railjack {
+  stroke: rgba(168, 85, 247, 0.1);
+}
+
+.connection-line.railjack.active {
+  stroke: rgba(168, 85, 247, 0.45);
+  stroke-width: 2.2;
+  stroke-dasharray: none;
+  filter: drop-shadow(0 0 3px rgba(168, 85, 247, 0.65));
+}
+
+/* Planet Nodes & Badges for Railjack */
+.map-planet-node.railjack-planet-node:hover .planet-sphere {
+  border-color: rgba(168, 85, 247, 0.7) !important;
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.5), 0 0 30px rgba(168, 85, 247, 0.2) !important;
+}
+
+.map-planet-node.railjack-planet-node.completed .planet-badge {
+  color: #c084fc !important;
+}
+
+.map-planet-node.railjack-planet-node.completed .planet-label {
+  color: #c084fc !important;
+}
+
+.planet-badge.railjack-badge {
+  color: #a855f7 !important;
+  font-weight: 700;
+}
+
+/* Railjack Proxima Spheres (Small / Normal View) */
+[data-id="earth_proxima"] .planet-sphere {
+  background-image: url('../public/planets/earth.png') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-color: #1b4d3e;
+  box-shadow: inset -4px -4px 8px rgba(0, 0, 0, 0.6), 0 0 12px rgba(168, 85, 247, 0.45) !important;
+  border: 1px solid rgba(168, 85, 247, 0.35) !important;
+}
+
+[data-id="venus_proxima"] .planet-sphere {
+  background-image: url('../public/planets/venus.png') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-color: #8c561b;
+  box-shadow: inset -4px -4px 8px rgba(0, 0, 0, 0.6), 0 0 12px rgba(168, 85, 247, 0.45) !important;
+  border: 1px solid rgba(168, 85, 247, 0.35) !important;
+}
+
+[data-id="saturn_proxima"] .planet-sphere {
+  background-image: url('../public/planets/saturn.png') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-color: #7d653f;
+  box-shadow: inset -4px -4px 8px rgba(0, 0, 0, 0.6), 0 0 12px rgba(168, 85, 247, 0.45) !important;
+  border: 1px solid rgba(168, 85, 247, 0.35) !important;
+}
+
+[data-id="neptune_proxima"] .planet-sphere {
+  background-image: url('../public/planets/neptune.png') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-color: #14285c;
+  box-shadow: inset -4px -4px 8px rgba(0, 0, 0, 0.6), 0 0 12px rgba(168, 85, 247, 0.45) !important;
+  border: 1px solid rgba(168, 85, 247, 0.35) !important;
+}
+
+[data-id="pluto_proxima"] .planet-sphere {
+  background-image: url('../public/planets/pluto.png') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-color: #5c4436;
+  box-shadow: inset -4px -4px 8px rgba(0, 0, 0, 0.6), 0 0 12px rgba(168, 85, 247, 0.45) !important;
+  border: 1px solid rgba(168, 85, 247, 0.35) !important;
+}
+
+[data-id="veil_proxima"] .planet-sphere {
+  background-image: url('../public/planets/veil.png') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-color: #1e1b4b;
+  box-shadow: inset -4px -4px 10px rgba(0, 0, 0, 0.8), 0 0 16px rgba(139, 92, 246, 0.75), 0 0 8px rgba(236, 72, 153, 0.5) !important;
+  border: 1px solid rgba(139, 92, 246, 0.6) !important;
+}
+
+/* Railjack Proxima Spheres (Large / Zoomed View) */
+[data-id="earth_proxima"] .planet-sphere.large {
+  background-image: url('../public/planets/earth.png') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-color: #1b4d3e;
+  box-shadow: inset -10px -10px 25px rgba(0, 0, 0, 0.7), 0 0 35px rgba(168, 85, 247, 0.55) !important;
+  border-color: rgba(168, 85, 247, 0.55) !important;
+}
+
+[data-id="venus_proxima"] .planet-sphere.large {
+  background-image: url('../public/planets/venus.png') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-color: #8c561b;
+  box-shadow: inset -10px -10px 25px rgba(0, 0, 0, 0.7), 0 0 35px rgba(168, 85, 247, 0.55) !important;
+  border-color: rgba(168, 85, 247, 0.55) !important;
+}
+
+[data-id="saturn_proxima"] .planet-sphere.large {
+  background-image: url('../public/planets/saturn.png') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-color: #7d653f;
+  box-shadow: inset -10px -10px 25px rgba(0, 0, 0, 0.7), 0 0 35px rgba(168, 85, 247, 0.55) !important;
+  border-color: rgba(168, 85, 247, 0.55) !important;
+}
+
+[data-id="neptune_proxima"] .planet-sphere.large {
+  background-image: url('../public/planets/neptune.png') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-color: #14285c;
+  box-shadow: inset -10px -10px 25px rgba(0, 0, 0, 0.7), 0 0 35px rgba(168, 85, 247, 0.55) !important;
+  border-color: rgba(168, 85, 247, 0.55) !important;
+}
+
+[data-id="pluto_proxima"] .planet-sphere.large {
+  background-image: url('../public/planets/pluto.png') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-color: #5c4436;
+  box-shadow: inset -10px -10px 25px rgba(0, 0, 0, 0.7), 0 0 35px rgba(168, 85, 247, 0.55) !important;
+  border-color: rgba(168, 85, 247, 0.55) !important;
+}
+
+[data-id="veil_proxima"] .planet-sphere.large {
+  background-image: url('../public/planets/veil.png') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-color: #1e1b4b;
+  box-shadow: inset -10px -10px 30px rgba(0, 0, 0, 0.8), 0 0 45px rgba(139, 92, 246, 0.85), 0 0 25px rgba(236, 72, 153, 0.6) !important;
+  border-color: rgba(139, 92, 246, 0.75) !important;
+}
+
+[data-id="veil_proxima"] .planet-sphere {
+  animation: veilOscillate 60s ease-in-out infinite alternate !important;
+}
+
+[data-id="veil_proxima"] .planet-sphere.large {
+  animation: veilOscillate 60s ease-in-out infinite alternate !important;
+}
+
+@keyframes veilOscillate {
+  0% { transform: rotate(-8deg) scale(1); }
+  100% { transform: rotate(8deg) scale(1.05); }
+}
+
+/* Container queries for Starchart responsive scaling */
+@container starchart-canvas (max-width: 720px) {
+  /* Scale down solar system map planet nodes smoothly on mobile */
+  .planet-sphere {
+    width: clamp(20px, 15px + 2.5cqw, 32px) !important;
+    height: clamp(20px, 15px + 2.5cqw, 32px) !important;
+  }
+  .planet-label {
+    font-size: clamp(9px, 8px + 0.4cqw, 10.5px) !important;
+    gap: 0.15rem !important;
+  }
+  .planet-badge {
+    font-size: clamp(8px, 7px + 0.3cqw, 9px) !important;
+  }
+  .starchart-map-core {
+    width: clamp(14px, 10px + 2cqw, 24px) !important;
+    height: clamp(14px, 10px + 2cqw, 24px) !important;
+  }
+  .core-glow {
+    left: -90% !important;
+    top: -90% !important;
+    right: -90% !important;
+    bottom: -90% !important;
+  }
+
+  /* Scale down detailed planet zoom-in view smoothly on mobile */
+  .planet-sphere.large {
+    width: clamp(65px, 50px + 8cqw, 110px) !important;
+    height: clamp(65px, 50px + 8cqw, 110px) !important;
+  }
+  .zoom-planet-title {
+    font-size: clamp(12px, 10px + 1.5cqw, 20px) !important;
+    margin-top: 0.5rem !important;
+  }
+  .zoom-back-btn {
+    padding: 0.4rem 0.8rem !important;
+    font-size: 0.6rem !important;
+    top: 0.8rem !important;
+    left: 0.8rem !important;
+  }
+  .map-mission-node .node-dot {
+    width: clamp(5px, 4px + 0.5cqw, 8px) !important;
+    height: clamp(5px, 4px + 0.5cqw, 8px) !important;
+  }
+  .node-label-text {
+    font-size: clamp(8px, 7px + 0.3cqw, 9.2px) !important;
+  }
+}
+
+@container starchart-canvas (max-width: 540px) {
+  /* Mobile portrait specific overrides to prevent overlaps */
+  .planet-badge {
+    display: none !important; /* Hide percent completion badge to save vertical space */
+  }
+  .map-mission-node {
+    gap: 0.1rem !important;
+  }
+  .map-mission-node::before {
+    top: -4px !important;
+    left: -4px !important;
+    right: -4px !important;
+    bottom: -4px !important;
+  }
+  .deimos-subtabs-container {
+    padding: 0.15rem !important;
+    border-radius: 10px !important;
+    margin-top: 0.5rem !important;
+  }
+  .deimos-subtab-btn {
+    font-size: 0.55rem !important;
+    padding: 0.2rem 0.5rem !important;
+    border-radius: 8px !important;
+  }
+  .zoom-back-btn svg {
+    width: 12px !important;
+    height: 12px !important;
+  }
+}
+
 
 
 

@@ -16,6 +16,7 @@ export const translations = {
       desc: "Monitore a conclusão dos nós dos planetas e junções. Cada nó e junção concluídos aumentam sua maestria total.",
       modeNormal: "Mapa Normal",
       modeSteelPath: "Steel Path (Caminho de Aço)",
+      modeRailjack: "Railjack",
       masteryEarned: "Maestria Ganha no Mapa",
       nodesTitle: "Nós de Missão por Planeta",
       junctionsTitle: "Terminais de Junção",
@@ -27,9 +28,10 @@ export const translations = {
       totalEarned: "Total Acumulado",
       normalNodesXP: "XP Nós Normal",
       steelNodesXP: "XP Nós Steel Path",
+      railjackNodesXP: "XP Nós Railjack",
       junctionsXP: "XP Junções",
       guideTitle: "O que é o Mapa Estelar?",
-      guideText: "Limpar os nós azul-piscante no mapa estelar destrava novas missões, além de conceder maestria pela primeira vez que você completa cada nó. Concluir os Nós de Missão normais e do Caminho de Aço (Steel Path), junto com as Junções, rende um total de 68.038 de Maestria XP!"
+      guideText: "Limpar os nós azul-piscante no mapa estelar destrava novas missões, além de conceder maestria pela primeira vez que você completa cada nó. Concluir os Nós de Missão normais e do Caminho de Aço (Steel Path), junto com o Railjack e as Junções, rende um total de 71.438 de Maestria XP!"
     },
     junctions: {
       title: "Terminais de Junção",
@@ -405,6 +407,7 @@ export const translations = {
       desc: "Monitor your completion of planet mission nodes and junctions. Each node and junction cleared increases your total Mastery XP.",
       modeNormal: "Normal Map",
       modeSteelPath: "Steel Path",
+      modeRailjack: "Railjack",
       masteryEarned: "Star Chart Mastery Earned",
       nodesTitle: "Mission Nodes by Planet",
       junctionsTitle: "Junction Terminals",
@@ -416,9 +419,10 @@ export const translations = {
       totalEarned: "Total Accumulated",
       normalNodesXP: "Normal Nodes XP",
       steelNodesXP: "Steel Path Nodes XP",
+      railjackNodesXP: "Railjack Nodes XP",
       junctionsXP: "Junctions XP",
       guideTitle: "What is the Star Chart?",
-      guideText: "Clearing flashing blue nodes on your navigation console unlocks new missions and awards Mastery XP for the first completion of each node. Completing all normal and Steel Path mission nodes, along with the Junctions, awards a grand total of 68,038 Mastery XP!"
+      guideText: "Clearing flashing blue nodes on your navigation console unlocks new missions and awards Mastery XP for the first completion of each node. Completing all normal, Steel Path, and Railjack mission nodes, along with the Junctions, awards a grand total of 71,438 Mastery XP!"
     },
     junctions: {
       title: "Junction Terminals",
@@ -794,14 +798,22 @@ export const translations = {
       desc: "Monitorea la finalización de los nodos de misión de los planetas. Completar todos los nodos de misión en modo Normal y Steel Path otorga XP de Maestría.",
       modeNormal: "Mapa Normal",
       modeSteelPath: "Camino de Acero (Steel Path)",
+      modeRailjack: "Railjack",
       masteryEarned: "Maestría de Mapa Ganada",
       nodesTitle: "Nodos de Misión por Planeta",
+      junctionsTitle: "Convergencias de Planetas",
+      planetCompleted: "Planeta Completado",
       completedNodes: "Nodos Completados",
       nodesCount: "nodos",
       nodesPercent: "Nodos de Mapa: {count} de {total} ({percent}%)",
+      junctionsPercent: "Convergencias de Planetas: {count} de {total} ({percent}%)",
       totalEarned: "Total Acumulado",
+      normalNodesXP: "XP Nodos Normales",
+      steelNodesXP: "XP Nodos Camino de Acero",
+      railjackNodesXP: "XP Nodos Railjack",
+      junctionsXP: "XP Convergencias",
       guideTitle: "¿Qué es el Mapa Estelar?",
-      guideText: "Completar los nodos de misión por primera vez otorga XP de Maestría. ¡Completar todos los nodos normales y del Camino de Acero otorga un total de 55,038 de Maestria XP!"
+      guideText: "Completar los nodos de misión por primera vez otorga XP de Maestría. ¡Completar todos los nodos normales, Camino de Acero y Railjack, junto con las convergencias, otorga un total de 71,438 de Maestría XP!"
     },
     junctions: {
       title: "Convergencias de Planetas",
@@ -1173,14 +1185,22 @@ export const translations = {
       desc: "惑星のミッションノードの完了状況を追跡します。ノーマルモードとスチールパスモードのすべてのノードをクリアすると、マスタリーXPが獲得できます。",
       modeNormal: "通常マップ",
       modeSteelPath: "スチールパス",
+      modeRailjack: "レールジャック",
       masteryEarned: "獲得したマップマスタリー",
       nodesTitle: "惑星ごとのミッションノード",
+      junctionsTitle: "ジャンクション・ターミナル",
+      planetCompleted: "惑星完了",
       completedNodes: "クリアしたノード",
       nodesCount: "ノード",
       nodesPercent: "マップノード: {count} / {total} ({percent}%)",
+      junctionsPercent: "ジャンクション・ターミナル: {count} / {total} ({percent}%)",
       totalEarned: "獲得XP合計",
+      normalNodesXP: "通常ノードXP",
+      steelNodesXP: "スチールパスノードXP",
+      railjackNodesXP: "レールジャックノードXP",
+      junctionsXP: "ジャンクションXP",
       guideTitle: "星系マップとは？",
-      guideText: "各ミッションノードを初めてクリアするとマスタリーXPを獲得できます。ノーマルとスチールパスのすべてのノードをクリアすると、合計55,038マスタリーXPを獲得できます。"
+      guideText: "各ミッションノードを初めてクリアするとマスタリーXPを獲得できます。ノーマル、スチールパス、レールジャックのすべてのノードとジャンクションをクリアすると、合計71,438マスタリーXPを獲得できます。"
     },
     junctions: {
       title: "ジャンクション・ターミナル",
