@@ -4852,45 +4852,45 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .node-connection-line {
-  stroke: rgba(0, 240, 255, 0.18);
-  stroke-width: 1.5px;
+  stroke: rgba(0, 240, 255, 0.05);
+  stroke-width: 1px;
   stroke-dasharray: 6, 6;
   fill: none;
   transition: all 0.5s ease;
   vector-effect: non-scaling-stroke;
-  animation: connection-dash 30s linear infinite;
+  animation: connection-dash 35s linear infinite;
 }
 
 .node-connection-line.active {
-  stroke: rgba(0, 240, 255, 0.85);
-  stroke-width: 2px;
+  stroke: rgba(0, 240, 255, 0.25);
+  stroke-width: 1.2px;
   stroke-dasharray: none;
-  filter: drop-shadow(0 0 3px rgba(0, 240, 255, 0.85));
-  animation: connection-glow 2.5s infinite alternate ease-in-out;
+  filter: drop-shadow(0 0 2px rgba(0, 240, 255, 0.4));
+  animation: connection-glow 3s infinite alternate ease-in-out;
 }
 
 .node-connection-line.steelpath {
-  stroke: rgba(255, 59, 48, 0.18);
+  stroke: rgba(255, 59, 48, 0.05);
 }
 
 .node-connection-line.steelpath.active {
-  stroke: rgba(255, 59, 48, 0.85);
-  stroke-width: 2px;
+  stroke: rgba(255, 59, 48, 0.25);
+  stroke-width: 1.2px;
   stroke-dasharray: none;
-  filter: drop-shadow(0 0 3px rgba(255, 59, 48, 0.85));
-  animation: connection-glow-steel 2.5s infinite alternate ease-in-out;
+  filter: drop-shadow(0 0 2px rgba(255, 59, 48, 0.4));
+  animation: connection-glow-steel 3s infinite alternate ease-in-out;
 }
 
 .node-connection-line.railjack {
-  stroke: rgba(168, 85, 247, 0.18);
+  stroke: rgba(168, 85, 247, 0.05);
 }
 
 .node-connection-line.railjack.active {
-  stroke: rgba(168, 85, 247, 0.85);
-  stroke-width: 2px;
+  stroke: rgba(168, 85, 247, 0.25);
+  stroke-width: 1.2px;
   stroke-dasharray: none;
-  filter: drop-shadow(0 0 3px rgba(168, 85, 247, 0.85));
-  animation: connection-glow-railjack 2.5s infinite alternate ease-in-out;
+  filter: drop-shadow(0 0 2px rgba(168, 85, 247, 0.4));
+  animation: connection-glow-railjack 3s infinite alternate ease-in-out;
 }
 
 @keyframes connection-dash {
@@ -4901,34 +4901,34 @@ h1, h2, h3, h4, h5, h6 {
 
 @keyframes connection-glow {
   0% {
-    stroke: rgba(0, 240, 255, 0.7);
-    filter: drop-shadow(0 0 2px rgba(0, 240, 255, 0.6));
+    stroke: rgba(0, 240, 255, 0.15);
+    filter: drop-shadow(0 0 1px rgba(0, 240, 255, 0.2));
   }
   100% {
-    stroke: rgba(0, 240, 255, 0.95);
-    filter: drop-shadow(0 0 5px rgba(0, 240, 255, 1));
+    stroke: rgba(0, 240, 255, 0.35);
+    filter: drop-shadow(0 0 3px rgba(0, 240, 255, 0.5));
   }
 }
 
 @keyframes connection-glow-steel {
   0% {
-    stroke: rgba(255, 59, 48, 0.7);
-    filter: drop-shadow(0 0 2px rgba(255, 59, 48, 0.6));
+    stroke: rgba(255, 59, 48, 0.15);
+    filter: drop-shadow(0 0 1px rgba(255, 59, 48, 0.2));
   }
   100% {
-    stroke: rgba(255, 59, 48, 0.95);
-    filter: drop-shadow(0 0 5px rgba(255, 59, 48, 1));
+    stroke: rgba(255, 59, 48, 0.35);
+    filter: drop-shadow(0 0 3px rgba(255, 59, 48, 0.5));
   }
 }
 
 @keyframes connection-glow-railjack {
   0% {
-    stroke: rgba(168, 85, 247, 0.7);
-    filter: drop-shadow(0 0 2px rgba(168, 85, 247, 0.6));
+    stroke: rgba(168, 85, 247, 0.15);
+    filter: drop-shadow(0 0 1px rgba(168, 85, 247, 0.2));
   }
   100% {
-    stroke: rgba(168, 85, 247, 0.95);
-    filter: drop-shadow(0 0 5px rgba(168, 85, 247, 1));
+    stroke: rgba(168, 85, 247, 0.35);
+    filter: drop-shadow(0 0 3px rgba(168, 85, 247, 0.5));
   }
 }
 
