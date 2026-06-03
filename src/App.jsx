@@ -3587,69 +3587,6 @@ export default function App() {
           <div className="logo-section">
             <Swords className="glow-cyan" size={28} style={{ color: 'var(--cyan)' }} />
             <h1>TennoTracker</h1>
-            <button 
-              className="api-status-btn"
-              onClick={() => {
-                setIsOfflineMode(prev => {
-                  const next = !prev;
-                  localStorage.setItem('tennoTracker_offline', String(next));
-                  return next;
-                });
-              }}
-              title={lang === 'pt' ? 'Clique para alternar entre Online/Offline' : 'Click to toggle Online/Offline'}
-              style={{
-                fontSize: '0.65rem',
-                fontFamily: 'var(--font-display)',
-                fontWeight: 700,
-                color: loadingApi 
-                  ? 'var(--text-muted)' 
-                  : isLiveLoaded && !isOfflineMode
-                    ? '#10b981' 
-                    : '#f5a442',
-                borderColor: loadingApi 
-                  ? 'rgba(255, 255, 255, 0.15)' 
-                  : isLiveLoaded && !isOfflineMode
-                    ? 'rgba(16, 185, 129, 0.45)' 
-                    : 'rgba(245, 164, 66, 0.45)',
-                background: 'rgba(10, 15, 30, 0.65)',
-                borderWidth: '1px',
-                borderStyle: 'solid',
-                borderRadius: '4px',
-                padding: '0.2rem 0.65rem',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.35rem',
-                transition: 'all 0.2s ease',
-                outline: 'none',
-                userSelect: 'none',
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em'
-              }}
-            >
-              <span style={{
-                width: '6px',
-                height: '6px',
-                borderRadius: '50%',
-                background: loadingApi 
-                  ? '#94a3b8' 
-                  : isLiveLoaded && !isOfflineMode
-                    ? '#10b981' 
-                    : '#f5a442',
-                display: 'inline-block',
-                boxShadow: loadingApi 
-                  ? 'none' 
-                  : isLiveLoaded && !isOfflineMode
-                    ? '0 0 6px #10b981' 
-                    : '0 0 6px #f5a442'
-              }} />
-              {loadingApi 
-                ? (lang === 'pt' ? 'CARREGANDO...' : 'LOADING...') 
-                : isLiveLoaded && !isOfflineMode
-                  ? 'ONLINE' 
-                  : 'OFFLINE'
-              }
-            </button>
           </div>
 
           <nav className="main-nav">
