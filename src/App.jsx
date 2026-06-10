@@ -2246,17 +2246,16 @@ export default function App() {
   const [weapons, setWeapons] = useState(() => [...getFallbackWeapons('pt'), ...fallbackCompanions]);
   const [loadingApi, setLoadingApi] = useState(false);
   const [isLiveLoaded, setIsLiveLoaded] = useState(false);
-  const [isOfflineMode, setIsOfflineMode] = useState(() => localStorage.getItem('tennoTracker_offline') === 'true');
+  const [isOfflineMode, setIsOfflineMode] = useState(false);
   
   const [showAdminControls, setShowAdminControls] = useState(() => {
     try {
       const params = new URLSearchParams(window.location.search);
       if (params.get('admin') === 'true' || params.get('dev') === 'true') {
-        localStorage.setItem('tennoTracker_admin', 'true');
         return true;
       }
     } catch (e) {}
-    return localStorage.getItem('tennoTracker_admin') === 'true';
+    return false;
   });
 
   const [headerClicks, setHeaderClicks] = useState(0);
@@ -2264,15 +2263,7 @@ export default function App() {
     setHeaderClicks(prev => {
       const next = prev + 1;
       if (next >= 5) {
-        setShowAdminControls(curr => {
-          const nextVal = !curr;
-          if (nextVal) {
-            localStorage.setItem('tennoTracker_admin', 'true');
-          } else {
-            localStorage.removeItem('tennoTracker_admin');
-          }
-          return nextVal;
-        });
+        setShowAdminControls(curr => !curr);
         return 0;
       }
       return next;
