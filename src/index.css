@@ -2255,11 +2255,11 @@ h1, h2, h3, h4, h5, h6 {
   justify-content: space-between;
   min-height: 380px;
   position: relative;
-  transition: transform var(--transition-medium), box-shadow var(--transition-medium), border-color var(--transition-medium);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .mod-card .card-shine {
@@ -2271,11 +2271,11 @@ h1, h2, h3, h4, h5, h6 {
   background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 50%, rgba(255,255,255,0) 100%);
   border-radius: 12px;
   pointer-events: none;
-  z-index: 1;
+  z-index: 2;
 }
 
 .mod-card:hover {
-  transform: translateY(-6px);
+  transform: translateY(-5px);
 }
 
 /* Mod Card Image Styles */
@@ -2287,23 +2287,44 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
   overflow: hidden;
   border-radius: 8px;
-  background: rgba(0, 0, 0, 0.5);
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.08) 0%, rgba(0, 240, 255, 0.04) 50%, rgba(3, 3, 5, 0.5) 100%);
   margin: 0.25rem 0;
   position: relative;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.04);
   box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.6);
 }
 
+.mod-card-img-container::before {
+  content: '';
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.22) 0%, rgba(0, 240, 255, 0.08) 60%, transparent 100%);
+  filter: blur(6px);
+  pointer-events: none;
+  opacity: 0.6;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 0;
+}
+
+.mod-card:hover .mod-card-img-container::before {
+  opacity: 0.95;
+  transform: scale(1.35);
+}
+
 .mod-card-img {
-  max-width: 100%;
-  max-height: 100%;
+  max-width: 92%;
+  max-height: 92%;
   object-fit: contain;
-  transition: transform var(--transition-medium);
-  z-index: 2;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.1));
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s ease;
+  position: relative;
+  z-index: 1;
 }
 
 .mod-card:hover .mod-card-img {
-  transform: scale(1.06);
+  transform: scale(1.1) rotate(1deg);
+  filter: drop-shadow(0 0 15px rgba(0, 240, 255, 0.35));
 }
 
 .mod-card-img-placeholder {
@@ -2483,9 +2504,51 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: 0.06em;
   color: var(--text-muted);
   text-align: center;
-  font-weight: 600;
+  font-weight: 700;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
-  padding-top: 0.4rem;
+  padding: 0.4rem 0.25rem 0 0.25rem;
+  margin-top: 0.4rem;
+  display: block;
+  transition: all var(--transition-smooth);
+}
+
+/* Color code type categories for mods */
+.mod-card-type-label[class*="type-warframe"] {
+  color: var(--cyan);
+}
+
+.mod-card-type-label[class*="type-rifle"],
+.mod-card-type-label[class*="type-shotgun"],
+.mod-card-type-label[class*="type-pistol"],
+.mod-card-type-label[class*="type-primary"],
+.mod-card-type-label[class*="type-secondary"],
+.mod-card-type-label[class*="type-arma"] {
+  color: #dfb858;
+}
+
+.mod-card-type-label[class*="type-melee"],
+.mod-card-type-label[class*="type-corpo"] {
+  color: #c084fc;
+}
+
+.mod-card-type-label[class*="type-aura"] {
+  color: #38bdf8;
+}
+
+.mod-card-type-label[class*="type-stance"],
+.mod-card-type-label[class*="type-postura"] {
+  color: #fb923c;
+}
+
+.mod-card-type-label[class*="type-archwing"] {
+  color: #f472b6;
+}
+
+.mod-card-type-label[class*="type-companion"],
+.mod-card-type-label[class*="type-robotic"],
+.mod-card-type-label[class*="type-sentinel"],
+.mod-card-type-label[class*="type-mascote"] {
+  color: #a78bfa;
 }
 
 .mod-card-actions {
@@ -2497,35 +2560,41 @@ h1, h2, h3, h4, h5, h6 {
 .mod-btn-obtained {
   flex: 1;
   background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   color: var(--text-muted);
   border-radius: 6px;
-  padding: 0.35rem 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 600;
+  padding: 0.45rem 0.5rem;
+  font-size: 0.72rem;
+  font-family: var(--font-display);
+  font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.25rem;
-  transition: all var(--transition-fast);
+  transition: all var(--transition-smooth);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .mod-btn-obtained:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.2);
-  color: var(--text-bright);
+  border-color: var(--cyan);
+  color: var(--cyan);
+  background: rgba(0, 240, 255, 0.05);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.1);
 }
 
 .mod-btn-obtained.is-obtained {
-  background: rgba(16, 185, 129, 0.12);
-  border-color: #10b981;
-  color: #10b981;
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.15);
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.45);
+  color: var(--color-owned);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
 }
 
 .mod-btn-obtained.is-obtained:hover {
-  background: rgba(16, 185, 129, 0.2);
+  border-color: var(--color-owned);
+  background: rgba(16, 185, 129, 0.12);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.25);
 }
 
 .mod-btn-info {

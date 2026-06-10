@@ -1143,8 +1143,13 @@ const normalizeMod = (m) => {
       description = maxStatsObj.stats.join(', ');
     }
   }
+  const cleanName = (m.name || '').replace(/<[^>]+>\s*/g, '').trim();
+  const cleanType = (m.type || '').replace(/<[^>]+>\s*/g, '').trim();
+
   return {
     ...m,
+    name: cleanName,
+    type: cleanType,
     description
   };
 };
@@ -4881,7 +4886,7 @@ export default function App() {
 
                       <div className="mod-card-bottom">
                         {renderFusionStars(m.fusionLimit)}
-                        <span className="mod-card-type-label">
+                        <span className={`mod-card-type-label type-${m.type ? m.type.toLowerCase().replace(/[^a-z0-9]/g, '-') : 'default'}`}>
                           {m.type}
                         </span>
                         <div className="mod-card-actions">
