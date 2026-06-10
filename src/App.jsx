@@ -2248,6 +2248,37 @@ export default function App() {
   const [isLiveLoaded, setIsLiveLoaded] = useState(false);
   const [isOfflineMode, setIsOfflineMode] = useState(() => localStorage.getItem('tennoTracker_offline') === 'true');
   
+  const [showAdminControls, setShowAdminControls] = useState(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('admin') === 'true' || params.get('dev') === 'true') {
+        localStorage.setItem('tennoTracker_admin', 'true');
+        return true;
+      }
+    } catch (e) {}
+    return localStorage.getItem('tennoTracker_admin') === 'true';
+  });
+
+  const [headerClicks, setHeaderClicks] = useState(0);
+  const handleHeaderClick = () => {
+    setHeaderClicks(prev => {
+      const next = prev + 1;
+      if (next >= 5) {
+        setShowAdminControls(curr => {
+          const nextVal = !curr;
+          if (nextVal) {
+            localStorage.setItem('tennoTracker_admin', 'true');
+          } else {
+            localStorage.removeItem('tennoTracker_admin');
+          }
+          return nextVal;
+        });
+        return 0;
+      }
+      return next;
+    });
+  };
+  
   // Search & Filters State
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
@@ -3649,26 +3680,34 @@ export default function App() {
         <div className="header-container">
           <div className="logo-section">
             <Swords className="glow-cyan" size={28} style={{ color: 'var(--cyan)' }} />
-            <h1>TennoTracker</h1>
-            <button 
-              className={`api-status-btn ${(loadingApi || loadingMods) ? 'is-loading' : (isLiveLoaded && !isOfflineMode) ? 'is-online' : 'is-offline'}`}
-              onClick={() => {
-                setIsOfflineMode(prev => {
-                  const next = !prev;
-                  localStorage.setItem('tennoTracker_offline', String(next));
-                  return next;
-                });
-              }}
-              title={lang === 'pt' ? 'Clique para alternar entre Online/Offline' : 'Click to toggle Online/Offline'}
+            <h1 
+              onClick={handleHeaderClick} 
+              style={{ cursor: 'default', userSelect: 'none' }}
+              title="TennoTracker"
             >
-              <span className="api-status-dot" />
-              {loadingApi || loadingMods
-                ? (lang === 'pt' ? 'CARREGANDO...' : 'LOADING...') 
-                : isLiveLoaded && !isOfflineMode
-                  ? 'ONLINE' 
-                  : 'OFFLINE'
-              }
-            </button>
+              TennoTracker
+            </h1>
+            {showAdminControls && (
+              <button 
+                className={`api-status-btn ${(loadingApi || loadingMods) ? 'is-loading' : (isLiveLoaded && !isOfflineMode) ? 'is-online' : 'is-offline'}`}
+                onClick={() => {
+                  setIsOfflineMode(prev => {
+                    const next = !prev;
+                    localStorage.setItem('tennoTracker_offline', String(next));
+                    return next;
+                  });
+                }}
+                title={lang === 'pt' ? 'Clique para alternar entre Online/Offline' : 'Click to toggle Online/Offline'}
+              >
+                <span className="api-status-dot" />
+                {loadingApi || loadingMods
+                  ? (lang === 'pt' ? 'CARREGANDO...' : 'LOADING...') 
+                  : isLiveLoaded && !isOfflineMode
+                    ? 'ONLINE' 
+                    : 'OFFLINE'
+                }
+              </button>
+            )}
           </div>
 
           <nav className="main-nav">
