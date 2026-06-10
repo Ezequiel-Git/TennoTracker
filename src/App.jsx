@@ -36,6 +36,7 @@ import { fallbackCompanions, getMasteryPointsRequired, getRankName } from './wea
 import { weaponSourceMap } from './weaponSourceMap';
 import { fallbackMods, fallbackArcanes } from './modsData';
 import weaponsFallbackComplete from './weaponsFallbackComplete.json';
+import modsFallbackComplete from './modsFallbackComplete.json';
 
 // --- STATIC CONFIGURATIONS FOR SYNDICATES ---
 const primarySyndicatesList = [
@@ -515,6 +516,26 @@ const getFallbackWeapons = (lang) => {
       drops: item.drops
     };
     return mapItemData(rawItem, isWarframe, lang);
+  });
+};
+
+const getFallbackMods = (lang) => {
+  return modsFallbackComplete.map(m => {
+    const rawMod = {
+      uniqueName: m.uniqueName,
+      name: lang === 'pt' ? m.namePt : m.nameEn,
+      polarity: m.polarity,
+      rarity: m.rarity,
+      baseDrain: m.baseDrain,
+      fusionLimit: m.fusionLimit,
+      type: lang === 'pt' ? m.typePt : m.typeEn,
+      wikiaThumbnail: m.wikiaThumbnail,
+      wikiaUrl: m.wikiaUrl,
+      imageName: m.imageName,
+      drops: m.drops,
+      description: lang === 'pt' ? m.descriptionPt : m.descriptionEn
+    };
+    return normalizeMod(rawMod);
   });
 };
 
@@ -2275,7 +2296,7 @@ export default function App() {
   const [expandedCards, setExpandedCards] = useState({});
 
   // MODULE 3: Mods Tracker State
-  const [mods, setMods] = useState(() => fallbackMods.map(normalizeMod));
+  const [mods, setMods] = useState(() => getFallbackMods(lang));
   const [loadingMods, setLoadingMods] = useState(false);
   const [modInventory, setModInventory] = useState(() => {
     try {
@@ -2551,7 +2572,7 @@ export default function App() {
   // Fetch Live Mods from WarframeStat API
   useEffect(() => {
     if (isOfflineMode) {
-      setMods(fallbackMods.map(normalizeMod));
+      setMods(getFallbackMods(lang));
       setLoadingMods(false);
       return;
     }
@@ -2643,7 +2664,7 @@ export default function App() {
         }
       } catch (err) {
         console.error('Failed to fetch live Mods, using fallback data:', err);
-        setMods(fallbackMods.map(normalizeMod));
+        setMods(getFallbackMods(lang));
       } finally {
         setLoadingMods(false);
       }
