@@ -2214,6 +2214,7 @@ export default function App() {
   const [weapons, setWeapons] = useState(() => [...getFallbackWeapons('pt'), ...fallbackCompanions]);
   const [loadingApi, setLoadingApi] = useState(false);
   const [isLiveLoaded, setIsLiveLoaded] = useState(false);
+  const [isOfflineMode, setIsOfflineMode] = useState(() => localStorage.getItem('tennoTracker_offline') === 'true');
   
   // Search & Filters State
   const [searchQuery, setSearchQuery] = useState('');
@@ -2467,6 +2468,12 @@ export default function App() {
 
   // Fetch Live Weapons & Warframes from WarframeStat API
   useEffect(() => {
+    if (isOfflineMode) {
+      setWeapons([...getFallbackWeapons(lang), ...fallbackCompanions]);
+      setIsLiveLoaded(false);
+      setLoadingApi(false);
+      return;
+    }
     const fetchItems = async () => {
       setLoadingApi(true);
       try {
@@ -2528,10 +2535,15 @@ export default function App() {
     };
 
     fetchItems();
-  }, [lang]);
+  }, [lang, isOfflineMode]);
 
   // Fetch Live Mods from WarframeStat API
   useEffect(() => {
+    if (isOfflineMode) {
+      setMods(fallbackMods.map(normalizeMod));
+      setLoadingMods(false);
+      return;
+    }
     const fetchMods = async () => {
       setLoadingMods(true);
       try {
@@ -2626,7 +2638,7 @@ export default function App() {
       }
     };
     fetchMods();
-  }, [lang]);
+  }, [lang, isOfflineMode]);
 
   // --- ACTIONS ---
   const handleToggleOwned = (weaponName, weaponId) => {
