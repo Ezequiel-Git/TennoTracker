@@ -6332,7 +6332,96 @@ body {
     height: 12px !important;
   }
 }
+.api-status-btn {
+  font-size: 0.65rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--text-muted);
+  background: rgba(10, 15, 30, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 20px;
+  padding: 0.25rem 0.75rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all var(--transition-smooth);
+  outline: none;
+  user-select: none;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-left: 0.75rem;
+}
 
+.api-status-btn:hover {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: var(--text-bright);
+}
 
+.api-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #94a3b8;
+  display: inline-block;
+  transition: all var(--transition-smooth);
+}
 
+.api-status-btn.is-online {
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.04);
+}
+.api-status-btn.is-online:hover {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.08);
+}
+.api-status-btn.is-online .api-status-dot {
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  animation: pulse-green 2s infinite;
+}
 
+.api-status-btn.is-offline {
+  color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.3);
+  background: rgba(245, 158, 11, 0.04);
+}
+.api-status-btn.is-offline:hover {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.08);
+}
+.api-status-btn.is-offline .api-status-dot {
+  background: #f59e0b;
+  box-shadow: 0 0 8px #f59e0b;
+  animation: pulse-orange 2s infinite;
+}
+
+.api-status-btn.is-loading {
+  color: var(--text-muted);
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.01);
+}
+.api-status-btn.is-loading .api-status-dot {
+  background: #94a3b8;
+  box-shadow: none;
+  animation: pulse-loading 1s infinite alternate;
+}
+
+@keyframes pulse-green {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+  70% { box-shadow: 0 0 0 5px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+@keyframes pulse-orange {
+  0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.5); }
+  70% { box-shadow: 0 0 0 5px rgba(245, 158, 11, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+}
+
+@keyframes pulse-loading {
+  0% { opacity: 0.3; transform: scale(0.8); }
+  100% { opacity: 1; transform: scale(1.2); }
+}

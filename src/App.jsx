@@ -3629,6 +3629,25 @@ export default function App() {
           <div className="logo-section">
             <Swords className="glow-cyan" size={28} style={{ color: 'var(--cyan)' }} />
             <h1>TennoTracker</h1>
+            <button 
+              className={`api-status-btn ${(loadingApi || loadingMods) ? 'is-loading' : (isLiveLoaded && !isOfflineMode) ? 'is-online' : 'is-offline'}`}
+              onClick={() => {
+                setIsOfflineMode(prev => {
+                  const next = !prev;
+                  localStorage.setItem('tennoTracker_offline', String(next));
+                  return next;
+                });
+              }}
+              title={lang === 'pt' ? 'Clique para alternar entre Online/Offline' : 'Click to toggle Online/Offline'}
+            >
+              <span className="api-status-dot" />
+              {loadingApi || loadingMods
+                ? (lang === 'pt' ? 'CARREGANDO...' : 'LOADING...') 
+                : isLiveLoaded && !isOfflineMode
+                  ? 'ONLINE' 
+                  : 'OFFLINE'
+              }
+            </button>
           </div>
 
           <nav className="main-nav">
