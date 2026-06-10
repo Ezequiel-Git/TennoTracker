@@ -531,13 +531,18 @@ h1, h2, h3, h4, h5, h6 {
   justify-content: space-between;
   position: relative;
   overflow: hidden;
-  transition: transform var(--transition-smooth), border-color var(--transition-smooth), box-shadow var(--transition-smooth);
+  border-radius: 12px;
+  background: rgba(15, 15, 20, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .weapon-card:hover {
-  transform: translateY(-6px);
-  border-color: rgba(var(--cyan-rgb), 0.4);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(var(--cyan-rgb), 0.2);
+  transform: translateY(-5px);
+  border-color: rgba(0, 240, 255, 0.3);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85), 0 0 25px rgba(0, 240, 255, 0.15);
 }
 
 .weapon-card::after {
@@ -548,31 +553,35 @@ h1, h2, h3, h4, h5, h6 {
   width: 4px;
   height: 100%;
   background: transparent;
-  transition: background var(--transition-smooth);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
 .weapon-card.owned {
-  border-color: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.2);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.02) 0%, rgba(15, 15, 20, 0.6) 100%);
 }
 .weapon-card.owned:hover {
-  border-color: rgba(16, 185, 129, 0.4);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.45);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), 0 0 25px rgba(16, 185, 129, 0.2);
 }
 
 .weapon-card.owned::after {
   background: var(--color-owned);
+  box-shadow: 0 0 8px var(--color-owned);
 }
 
 .weapon-card.mastered {
-  border-color: rgba(168, 85, 247, 0.15);
+  border-color: rgba(168, 85, 247, 0.2);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.03) 0%, rgba(15, 15, 20, 0.6) 100%);
 }
 .weapon-card.mastered:hover {
-  border-color: rgba(168, 85, 247, 0.4);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(168, 85, 247, 0.15);
+  border-color: rgba(168, 85, 247, 0.45);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), 0 0 25px rgba(168, 85, 247, 0.2);
 }
 
 .weapon-card.mastered::after {
   background: var(--color-mastered);
+  box-shadow: 0 0 8px var(--color-mastered);
 }
 
 .weapon-card-header {
@@ -585,52 +594,115 @@ h1, h2, h3, h4, h5, h6 {
 .weapon-name {
   font-family: var(--font-sans);
   font-size: 1.05rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-bright);
   cursor: pointer;
-  transition: color var(--transition-fast);
+  transition: color var(--transition-fast), text-shadow var(--transition-fast);
 }
 
 .weapon-name:hover {
   color: var(--cyan);
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.35);
 }
 
 .weapon-mr-badge {
   font-family: var(--font-display);
   font-size: 0.7rem;
-  background: rgba(255,255,255,0.02);
-  border: 1px solid var(--border-color);
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
-  color: var(--text-main);
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  color: var(--text-muted);
   transition: all var(--transition-fast);
 }
 
 .weapon-type-badge {
-  font-size: 0.75rem;
-  color: var(--text-muted);
+  font-size: 0.68rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 1rem;
+  letter-spacing: 0.06em;
+  font-weight: 700;
   display: inline-block;
+  margin-bottom: 0.8rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--text-muted);
+  transition: all var(--transition-smooth);
+}
+
+.weapon-type-badge.type-warframe {
+  background: rgba(0, 240, 255, 0.06);
+  border-color: rgba(0, 240, 255, 0.22);
+  color: var(--cyan);
+}
+
+.weapon-type-badge.type-primary {
+  background: rgba(223, 184, 88, 0.06);
+  border-color: rgba(223, 184, 88, 0.22);
+  color: #dfb858;
+}
+
+.weapon-type-badge.type-secondary {
+  background: rgba(245, 158, 11, 0.06);
+  border-color: rgba(245, 158, 11, 0.22);
+  color: #f59e0b;
+}
+
+.weapon-type-badge.type-melee {
+  background: rgba(168, 85, 247, 0.06);
+  border-color: rgba(168, 85, 247, 0.22);
+  color: #c084fc;
+}
+
+.weapon-type-badge.type-archwing {
+  background: rgba(236, 72, 153, 0.06);
+  border-color: rgba(236, 72, 153, 0.22);
+  color: #f472b6;
+}
+
+.weapon-type-badge.type-arch-gun {
+  background: rgba(239, 68, 68, 0.06);
+  border-color: rgba(239, 68, 68, 0.22);
+  color: #f87171;
+}
+
+.weapon-type-badge.type-arch-melee {
+  background: rgba(16, 185, 129, 0.06);
+  border-color: rgba(16, 185, 129, 0.22);
+  color: #34d399;
+}
+
+.weapon-type-badge.type-amp {
+  background: rgba(56, 189, 248, 0.06);
+  border-color: rgba(56, 189, 248, 0.22);
+  color: #38bdf8;
+}
+
+.weapon-type-badge.type-companion {
+  background: rgba(139, 92, 246, 0.06);
+  border-color: rgba(139, 92, 246, 0.22);
+  color: #a78bfa;
 }
 
 .weapon-actions {
   display: flex;
   gap: 0.5rem;
   margin-top: auto;
+  align-items: center;
 }
 
 .action-btn {
   flex: 1;
-  background: var(--bg-deep);
-  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   color: var(--text-muted);
   padding: 0.55rem 0.5rem;
   border-radius: 6px;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -638,37 +710,147 @@ h1, h2, h3, h4, h5, h6 {
   gap: 0.35rem;
   transition: all var(--transition-smooth);
   text-transform: uppercase;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
 }
 
 .action-btn:hover {
   border-color: var(--cyan);
   color: var(--cyan);
-  background: rgba(var(--cyan-rgb), 0.04);
+  background: rgba(0, 240, 255, 0.05);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.1);
 }
 
 .action-btn.owned-active {
   background: rgba(16, 185, 129, 0.08);
   border-color: rgba(16, 185, 129, 0.45);
   color: var(--color-owned);
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.1);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
 }
 
 .action-btn.owned-active:hover {
   border-color: var(--color-owned);
   background: rgba(16, 185, 129, 0.12);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.25);
 }
 
 .action-btn.mastered-active {
-  background: rgba(var(--purple-rgb), 0.08);
-  border-color: rgba(var(--purple-rgb), 0.45);
+  background: rgba(168, 85, 247, 0.08);
+  border-color: rgba(168, 85, 247, 0.45);
   color: var(--color-mastered);
-  box-shadow: 0 0 10px rgba(var(--purple-rgb), 0.1);
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.15);
 }
 
 .action-btn.mastered-active:hover {
   border-color: var(--color-mastered);
   background: rgba(168, 85, 247, 0.12);
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.25);
+}
+
+.info-btn, .chevron-btn {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  color: var(--text-muted);
+  padding: 0.5rem 0.55rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-smooth);
+}
+
+.info-btn:hover {
+  background: rgba(0, 240, 255, 0.08);
+  border-color: rgba(0, 240, 255, 0.35);
+  color: var(--cyan);
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.2);
+}
+
+.chevron-btn:hover {
+  background: rgba(168, 85, 247, 0.08);
+  border-color: rgba(168, 85, 247, 0.35);
+  color: #c084fc;
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.2);
+}
+
+.chevron-btn.expanded {
+  background: rgba(0, 240, 255, 0.12);
+  border-color: var(--cyan);
+  color: var(--cyan);
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.25);
+}
+
+/* Custom Checkbox Design */
+.toolbar-checkbox-container {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  padding: 0 0.5rem;
+}
+
+.toolbar-checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+  transition: color var(--transition-smooth);
+}
+
+.toolbar-checkbox-wrapper:hover {
+  color: var(--text-bright);
+}
+
+.toolbar-checkbox-wrapper input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkbox-custom {
+  width: 16px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  display: inline-block;
+  position: relative;
+  transition: all var(--transition-smooth);
+}
+
+.toolbar-checkbox-wrapper:hover .checkbox-custom {
+  border-color: rgba(0, 240, 255, 0.45);
+  box-shadow: 0 0 6px rgba(0, 240, 255, 0.15);
+}
+
+.toolbar-checkbox-wrapper input:checked ~ .checkbox-custom {
+  background: var(--cyan);
+  border-color: var(--cyan);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+}
+
+.toolbar-checkbox-wrapper input:checked ~ .checkbox-custom::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 4px;
+  height: 8px;
+  border: solid #030305;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.toolbar-items-count {
+  margin-left: auto;
+  font-size: 0.85rem;
+  color: var(--text-muted);
 }
 
 .weapon-badge-tags {
@@ -1422,30 +1604,50 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Weapon Images styling */
 .weapon-card-img-container {
-  height: 130px;
-  background: radial-gradient(circle at 50% 50%, rgba(var(--purple-rgb), 0.12) 0%, rgba(var(--cyan-rgb), 0.06) 50%, rgba(3, 3, 5, 0) 80%);
-  border-bottom: 1px solid var(--border-color);
+  height: 140px;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.08) 0%, rgba(0, 240, 255, 0.05) 50%, transparent 80%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   display: flex;
   align-items: center;
   justify-content: center;
   margin: -1.25rem -1.25rem 0.75rem -1.25rem;
-  padding: 0.5rem;
+  padding: 0.75rem;
   position: relative;
   cursor: pointer;
   overflow: hidden;
+}
+
+.weapon-card-img-container::before {
+  content: '';
+  position: absolute;
+  width: 70px;
+  height: 70px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.22) 0%, rgba(0, 240, 255, 0.1) 60%, transparent 100%);
+  filter: blur(8px);
+  pointer-events: none;
+  opacity: 0.6;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 0;
+}
+
+.weapon-card:hover .weapon-card-img-container::before {
+  opacity: 0.95;
+  transform: scale(1.35);
 }
 
 .weapon-card-img {
   max-width: 90%;
   max-height: 90%;
   object-fit: contain;
-  filter: drop-shadow(0 0 8px rgba(var(--cyan-rgb), 0.15));
-  transition: transform var(--transition-smooth), filter var(--transition-smooth);
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.15));
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s ease;
+  position: relative;
+  z-index: 1;
 }
 
 .weapon-card:hover .weapon-card-img {
-  transform: scale(1.08) rotate(1deg);
-  filter: drop-shadow(0 0 15px rgba(var(--cyan-rgb), 0.4));
+  transform: scale(1.12) rotate(2deg);
+  filter: drop-shadow(0 0 20px rgba(0, 240, 255, 0.45));
 }
 
 .modal-weapon-img-container {

@@ -174,24 +174,30 @@ const questWeapons = new Set([
 
 // Helper to map and unify weapons and warframes payload structure
 const mapItemData = (item, isWarframe, lang) => {
-  const type = isWarframe ? 'Warframe' : (
+  const cleanName = (item.name || '').replace(/<[^>]+>\s*/g, '').trim();
+
+  let type = isWarframe ? 'Warframe' : (
     item.category === "Primary" || item.category === "Secondary" || item.category === "Melee" 
       ? item.category 
       : item.type
   );
 
+  if (item.category === "Archwing" || item.type === "Archwing") {
+    type = "Archwing";
+  }
+
   const image = item.imageName 
     ? `https://cdn.warframestat.us/img/${item.imageName}` 
     : null;
 
-  const wikiaUrl = item.wikiaUrl || `https://warframe.fandom.com/wiki/${encodeURIComponent((item.name || '').replace(/\s+/g, '_'))}`;
+  const wikiaUrl = item.wikiaUrl || `https://warframe.fandom.com/wiki/${encodeURIComponent(cleanName.replace(/\s+/g, '_'))}`;
 
   let isNemesis = false;
   let nemesisType = null;
   let weaponSource;
 
-  if (item.name) {
-    const upperName = item.name.toUpperCase();
+  if (cleanName) {
+    const upperName = cleanName.toUpperCase();
     if (upperName.includes('KUVA')) {
       isNemesis = true;
       nemesisType = 'Kuva';
@@ -301,7 +307,7 @@ const mapItemData = (item, isWarframe, lang) => {
         weaponSource = "Mission Drops";
       } else {
         // Determine more detailed source
-        const nameLower = (item.name || '').toLowerCase();
+        const nameLower = cleanName.toLowerCase();
         const uniqLower = (item.uniqueName || '').toLowerCase();
         const bpUniq = (item.components?.find(c => c.name && c.name.toLowerCase() === 'blueprint')?.uniqueName || '').toLowerCase();
 
@@ -376,7 +382,7 @@ const mapItemData = (item, isWarframe, lang) => {
     }
 
     if (weaponDrops.length === 0) {
-      const upperName = (item.name || '').toUpperCase();
+      const upperName = cleanName.toUpperCase();
       if (upperName.includes('PRISMA')) {
         weaponDrops = ["Prisma Weapon Option"];
       } else if (upperName.includes('WRAITH')) {
@@ -441,7 +447,7 @@ const mapItemData = (item, isWarframe, lang) => {
       } else if (weaponSource === "Boss Drops / Dojo / Quests") {
         weaponDrops = ["Boss Drops / Dojo / Quests Option"];
       } else if (isWarframe) {
-        weaponDrops = item.name.includes("Prime") ? ["Void Relics"] : ["Drops no jogo (Consulte o Codex/Chefe da Missão)."];
+        weaponDrops = cleanName.includes("Prime") ? ["Void Relics"] : ["Drops no jogo (Consulte o Codex/Chefe da Missão)."];
       } else {
         weaponDrops = ["Drops no jogo (Consulte o Codex)."];
       }
@@ -449,8 +455,8 @@ const mapItemData = (item, isWarframe, lang) => {
   }
 
   return {
-    id: item.uniqueName || (item.name ? item.name.toLowerCase().replace(/\s+/g, '-') : Math.random().toString(36).substring(2, 9)),
-    name: item.name,
+    id: item.uniqueName || (cleanName ? cleanName.toLowerCase().replace(/\s+/g, '-') : Math.random().toString(36).substring(2, 9)),
+    name: cleanName,
     type: type || (isWarframe ? 'Warframe' : 'Primary'),
     isNemesis: isNemesis,
     nemesisType: nemesisType,
@@ -4441,28 +4447,28 @@ export default function App() {
               </select>
             </div>
 
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', padding: '0 0.5rem' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
+            <div className="toolbar-checkbox-container">
+              <label className="toolbar-checkbox-wrapper">
                 <input 
                   type="checkbox" 
                   checked={hideLockedByMR} 
                   onChange={(e) => setHideLockedByMR(e.target.checked)} 
-                  style={{ cursor: 'pointer' }}
                 />
-                {t.arsenal.hideLocked}
+                <span className="checkbox-custom"></span>
+                <span>{t.arsenal.hideLocked}</span>
               </label>
 
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
+              <label className="toolbar-checkbox-wrapper">
                 <input 
                   type="checkbox" 
                   checked={hideUnresearched} 
                   onChange={(e) => setHideUnresearched(e.target.checked)} 
-                  style={{ cursor: 'pointer' }}
                 />
-                {t.dojo?.filterLabel || 'Esconder armas não pesquisadas no Dojo'}
+                <span className="checkbox-custom"></span>
+                <span>{t.dojo?.filterLabel || 'Esconder armas não pesquisadas no Dojo'}</span>
               </label>
 
-              <div style={{ marginLeft: 'auto', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+              <div className="toolbar-items-count">
                 {filteredWeapons.length} {t.arsenal.itemsFound}
               </div>
             </div>
@@ -4520,7 +4526,7 @@ export default function App() {
                             >
                               {w.name}
                             </h4>
-                            <span className="weapon-type-badge">{w.type}</span>
+                            <span className={`weapon-type-badge type-${w.type ? w.type.toLowerCase().replace(/\s+/g, '-') : 'default'}`}>{w.type}</span>
                           </div>
                           <div 
                             className="weapon-mr-badge"
@@ -4632,18 +4638,6 @@ export default function App() {
                           className="info-btn"
                           onClick={(e) => { e.stopPropagation(); setSelectedWeapon(w); }}
                           title={t.general?.info || 'Info'}
-                          style={{
-                            background: 'rgba(255, 255, 255, 0.04)',
-                            border: '1px solid var(--border-color)',
-                            borderRadius: '6px',
-                            color: 'var(--text-bright)',
-                            padding: '0.4rem 0.5rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease',
-                          }}
                         >
                           <Info size={14} />
                         </button>
@@ -4651,18 +4645,6 @@ export default function App() {
                           className={`chevron-btn ${expandedCards[w.id] ? 'expanded' : ''}`}
                           onClick={(e) => { e.stopPropagation(); toggleCardExpanded(w.id); }}
                           title={expandedCards[w.id] ? (lang === 'pt' ? 'Recolher Atributos' : 'Collapse Stats') : (lang === 'pt' ? 'Ver Atributos Rápidos' : 'Expand Quick Stats')}
-                          style={{
-                            background: expandedCards[w.id] ? 'rgba(6, 182, 212, 0.15)' : 'rgba(255, 255, 255, 0.04)',
-                            border: expandedCards[w.id] ? '1px solid var(--cyan)' : '1px solid var(--border-color)',
-                            borderRadius: '6px',
-                            color: expandedCards[w.id] ? 'var(--cyan)' : 'var(--text-bright)',
-                            padding: '0.4rem 0.5rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease',
-                          }}
                         >
                           {expandedCards[w.id] ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                         </button>
