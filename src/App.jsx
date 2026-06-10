@@ -32,9 +32,10 @@ import {
   Map as MapIcon,
   Milestone
 } from 'lucide-react';
-import { fallbackWeapons, fallbackCompanions, getMasteryPointsRequired, getRankName } from './weaponsData';
+import { fallbackCompanions, getMasteryPointsRequired, getRankName } from './weaponsData';
 import { weaponSourceMap } from './weaponSourceMap';
 import { fallbackMods, fallbackArcanes } from './modsData';
+import weaponsFallbackComplete from './weaponsFallbackComplete.json';
 
 // --- STATIC CONFIGURATIONS FOR SYNDICATES ---
 const primarySyndicatesList = [
@@ -477,8 +478,38 @@ const mapItemData = (item, isWarframe, lang) => {
     shield: item.shield || 100,
     armor: item.armor || 100,
     power: item.power || item.energy || 100,
-    abilities: item.abilities || []
   };
+};
+
+const getFallbackWeapons = (lang) => {
+  return weaponsFallbackComplete.map(item => {
+    const isWarframe = item.category === "Warframes" || item.category === "Warframe" || item.type === "Warframe" || item.category === "Archwing" || item.type === "Archwing";
+    const rawItem = {
+      uniqueName: item.uniqueName,
+      name: lang === 'pt' ? item.namePt : item.nameEn,
+      category: item.category,
+      type: item.type,
+      masteryReq: item.masteryReq,
+      vaulted: item.vaulted,
+      description: lang === 'pt' ? item.descriptionPt : item.descriptionEn,
+      imageName: item.imageName,
+      wikiaUrl: item.wikiaUrl,
+      criticalChance: item.criticalChance,
+      criticalMultiplier: item.criticalMultiplier,
+      procChance: item.procChance,
+      fireRate: item.fireRate,
+      disposition: item.disposition,
+      damage: item.damage,
+      health: item.health,
+      shield: item.shield,
+      armor: item.armor,
+      power: item.power,
+      abilities: item.abilities,
+      components: item.components,
+      drops: item.drops
+    };
+    return mapItemData(rawItem, isWarframe, lang);
+  });
 };
 
 const getLocalizedSource = (source, lang) => {
@@ -2180,7 +2211,7 @@ export default function App() {
   const [starChartMode, setStarChartMode] = useState('normal');
   const [selectedPlanetId, setSelectedPlanetId] = useState('earth');
 
-  const [weapons, setWeapons] = useState(() => [...fallbackWeapons, ...fallbackCompanions]);
+  const [weapons, setWeapons] = useState(() => [...getFallbackWeapons('pt'), ...fallbackCompanions]);
   const [loadingApi, setLoadingApi] = useState(false);
   const [isLiveLoaded, setIsLiveLoaded] = useState(false);
   
@@ -2476,7 +2507,7 @@ export default function App() {
             .map(item => mapItemData(item, true, lang));
         }
         
-        const fallbackOthers = fallbackWeapons.filter(w => 
+        const fallbackOthers = getFallbackWeapons(lang).filter(w => 
           w.type === 'Archwing' || 
           w.type === 'Arch-Gun' || 
           w.type === 'Arch-Melee' || 
@@ -2489,7 +2520,7 @@ export default function App() {
         setIsLiveLoaded(true);
       } catch (err) {
         console.error('Failed to fetch live Warframe items, using fallback data:', err);
-        setWeapons([...fallbackWeapons, ...fallbackCompanions]);
+        setWeapons([...getFallbackWeapons(lang), ...fallbackCompanions]);
         setIsLiveLoaded(false);
       } finally {
         setLoadingApi(false);
